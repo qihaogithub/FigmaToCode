@@ -6,7 +6,7 @@ import { PluginUI } from "plugin-ui";
 
 export default function Web() {
   const [selectedFramework, setSelectedFramework] =
-    React.useState<Framework>("HTML");
+    React.useState<Framework>("Tailwind");
   const testWarnings = ["This is an example of a conversion warning message."];
 
   return (

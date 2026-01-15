@@ -20,8 +20,6 @@ export const formatStyleAttribute = (
 export const formatDataAttribute = (label: string, value?: string) =>
   ` data-${lowercaseFirstLetter(label).replace(" ", "-")}${value === undefined ? `` : `="${value}"`}`;
 
-export const formatTwigAttribute = (label: string, value?: string) =>
-  ['.', '_'].includes(label.charAt(0)) ? '' : (` ${lowercaseFirstLetter(label).replace(" ", "-")}${value === undefined ? `` : `="${value}"`}`);
 
 export const formatClassAttribute = (
   classes: string[],

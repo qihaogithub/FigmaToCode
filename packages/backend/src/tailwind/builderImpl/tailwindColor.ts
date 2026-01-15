@@ -7,11 +7,7 @@ import {
 import { TailwindColorType } from "types";
 import { retrieveTopFill } from "../../common/retrieveFill";
 
-// Import the HTML gradient functions
-import {
-  htmlAngularGradient,
-  htmlRadialGradient,
-} from "../../html/builderImpl/htmlColor";
+// 之前 Tailwind <4 会复用 HTML 的渐变字符串生成；阶段1已删除 HTML 框架
 import { GradientPaint, Paint } from "../../api_types";
 import { localTailwindSettings } from "../tailwindMain";
 
@@ -160,13 +156,13 @@ export const tailwindGradientFromFills = (
       return "";
     }
   } else {
-    // Use arbitrary values with HTML-based gradient syntax for other gradient types
+    // 阶段1删除 HTML 框架后：Tailwind <4 不再支持 Angular/Radial 的渐变 class（仅保留 linear）
     if (fill.type === "GRADIENT_ANGULAR") {
-      return tailwindArbitraryGradient(htmlAngularGradient(fill));
+      return "";
     }
 
     if (fill.type === "GRADIENT_RADIAL") {
-      return tailwindArbitraryGradient(htmlRadialGradient(fill));
+      return "";
     }
 
     if (fill.type === "GRADIENT_DIAMOND") {

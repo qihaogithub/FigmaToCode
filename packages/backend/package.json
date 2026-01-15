@@ -10,7 +10,8 @@
     "dist/**"
   ],
   "scripts": {
-    "lint": "eslint \"src/**/*.ts*\""
+    "lint": "eslint \"src/**/*.ts*\"",
+    "type-check": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@figma/plugin-typings": "^1.121.0",

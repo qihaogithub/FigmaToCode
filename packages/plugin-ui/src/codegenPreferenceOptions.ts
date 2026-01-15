@@ -15,7 +15,7 @@ export const preferenceOptions: LocalCodegenPreferenceOptions[] = [
     label: "Layer names",
     description: "Include Figma layer names in classes.",
     isDefault: false,
-    includedLanguages: ["HTML", "Tailwind"],
+    includedLanguages: ["Tailwind"],
   },
   {
     itemType: "individual_select",
@@ -41,7 +41,7 @@ export const preferenceOptions: LocalCodegenPreferenceOptions[] = [
     description:
       "Export code using Figma variables as colors. Example: 'bg-background' instead of 'bg-white'.",
     isDefault: true,
-    includedLanguages: ["HTML", "Tailwind", "Flutter", "Compose"],
+    includedLanguages: ["Tailwind"],
   },
   {
     itemType: "individual_select",
@@ -50,7 +50,7 @@ export const preferenceOptions: LocalCodegenPreferenceOptions[] = [
     description:
       "Convert Figma images to Base64 and embed them in the code. This may be slow. If there are too many images, it could freeze Figma.",
     isDefault: false,
-    includedLanguages: ["HTML"],
+    includedLanguages: ["Tailwind"],
   },
   {
     itemType: "individual_select",
@@ -59,23 +59,11 @@ export const preferenceOptions: LocalCodegenPreferenceOptions[] = [
     description:
       "Enable this to convert vector shapes to SVGs and embed them in the design. This can be a slow operation. If unchecked, shapes will be converted into rectangles.",
     isDefault: false,
-    includedLanguages: ["HTML", "Tailwind"],
+    includedLanguages: ["Tailwind"],
   },
 ];
 
 export const selectPreferenceOptions: SelectPreferenceOptions[] = [
-  {
-    itemType: "select",
-    propertyName: "htmlGenerationMode",
-    label: "Mode",
-    options: [
-      { label: "HTML", value: "html" },
-      { label: "React (JSX)", value: "jsx" },
-      { label: "Svelte", value: "svelte" },
-      { label: "styled-components", value: "styled-components" },
-    ],
-    includedLanguages: ["HTML"],
-  },
   {
     itemType: "select",
     propertyName: "tailwindGenerationMode",
@@ -83,41 +71,7 @@ export const selectPreferenceOptions: SelectPreferenceOptions[] = [
     options: [
       { label: "HTML", value: "html" },
       { label: "React (JSX)", value: "jsx" },
-      { label: "Twig", value: "twig" },
     ],
     includedLanguages: ["Tailwind"],
-  },
-  {
-    itemType: "select",
-    propertyName: "flutterGenerationMode",
-    label: "Mode",
-    options: [
-      { label: "Full App", value: "fullApp" },
-      { label: "Widget", value: "stateless" },
-      { label: "Snippet", value: "snippet" },
-    ],
-    includedLanguages: ["Flutter"],
-  },
-  {
-    itemType: "select",
-    propertyName: "swiftUIGenerationMode",
-    label: "Mode",
-    options: [
-      { label: "Preview", value: "preview" },
-      { label: "Struct", value: "struct" },
-      { label: "Snippet", value: "snippet" },
-    ],
-    includedLanguages: ["SwiftUI"],
-  },
-  {
-    itemType: "select",
-    propertyName: "composeGenerationMode",
-    label: "Mode",
-    options: [
-      { label: "Snippet", value: "snippet" },
-      { label: "Composable", value: "composable" },
-      { label: "Full Screen", value: "screen" },
-    ],
-    includedLanguages: ["Compose"],
   },
 ];

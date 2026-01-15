@@ -1,38 +1,22 @@
-import { tailwindCodeGenTextStyles } from "./../../../packages/backend/src/tailwind/tailwindMain";
-import {
-  run,
-  flutterMain,
-  tailwindMain,
-  swiftuiMain,
-  htmlMain,
-  composeMain,
-  postSettingsChanged,
-} from "backend";
+import { tailwindCodeGenTextStyles, tailwindMain } from "backend";
+import { run, postSettingsChanged } from "backend";
 import { nodesToJSON } from "backend/src/altNodes/jsonNodeConversion";
 import { retrieveGenericSolidUIColors } from "backend/src/common/retrieveUI/retrieveColors";
-import { flutterCodeGenTextStyles } from "backend/src/flutter/flutterMain";
-import { htmlCodeGenTextStyles } from "backend/src/html/htmlMain";
-import { swiftUICodeGenTextStyles } from "backend/src/swiftui/swiftuiMain";
-import { composeCodeGenTextStyles } from "backend/src/compose/composeMain";
 import { PluginSettings, SettingWillChangeMessage } from "types";
 
 let userPluginSettings: PluginSettings;
 
 export const defaultPluginSettings: PluginSettings = {
-  framework: "HTML",
+  framework: "Tailwind",
   showLayerNames: false,
   useOldPluginVersion2025: false,
   responsiveRoot: false,
-  flutterGenerationMode: "snippet",
-  swiftUIGenerationMode: "snippet",
-  composeGenerationMode: "snippet",
   roundTailwindValues: true,
   roundTailwindColors: true,
   useColorVariables: true,
   customTailwindPrefix: "",
   embedImages: false,
   embedVectors: false,
-  htmlGenerationMode: "html",
   tailwindGenerationMode: "jsx",
   baseFontSize: 16,
   useTailwind4: false,
@@ -69,6 +53,11 @@ const getUserSettings = async () => {
       return validSettings;
     }, {} as Partial<PluginSettings>),
   };
+
+  // 配置迁移策略：强制迁移到 Tailwind，并补齐默认值
+  if ((updatedPluginSrcSettings as any).framework !== "Tailwind") {
+    (updatedPluginSrcSettings as any).framework = "Tailwind";
+  }
 
   userPluginSettings = updatedPluginSrcSettings as PluginSettings;
   console.log("[DEBUG] getUserSettings - Final settings:", userPluginSettings);
@@ -246,88 +235,6 @@ const codegenMode = async () => {
       );
 
       switch (language) {
-        case "html":
-          return [
-            {
-              title: "Code",
-              code: (
-                await htmlMain(
-                  convertedSelection,
-                  { ...userPluginSettings, htmlGenerationMode: "html" },
-                  true,
-                )
-              ).html,
-              language: "HTML",
-            },
-            {
-              title: "Text Styles",
-              code: htmlCodeGenTextStyles(userPluginSettings),
-              language: "HTML",
-            },
-          ];
-        case "html_jsx":
-          return [
-            {
-              title: "Code",
-              code: (
-                await htmlMain(
-                  convertedSelection,
-                  { ...userPluginSettings, htmlGenerationMode: "jsx" },
-                  true,
-                )
-              ).html,
-              language: "HTML",
-            },
-            {
-              title: "Text Styles",
-              code: htmlCodeGenTextStyles(userPluginSettings),
-              language: "HTML",
-            },
-          ];
-
-        case "html_svelte":
-          return [
-            {
-              title: "Code",
-              code: (
-                await htmlMain(
-                  convertedSelection,
-                  { ...userPluginSettings, htmlGenerationMode: "svelte" },
-                  true,
-                )
-              ).html,
-              language: "HTML",
-            },
-            {
-              title: "Text Styles",
-              code: htmlCodeGenTextStyles(userPluginSettings),
-              language: "HTML",
-            },
-          ];
-
-        case "html_styled_components":
-          return [
-            {
-              title: "Code",
-              code: (
-                await htmlMain(
-                  convertedSelection,
-                  {
-                    ...userPluginSettings,
-                    htmlGenerationMode: "styled-components",
-                  },
-                  true,
-                )
-              ).html,
-              language: "HTML",
-            },
-            {
-              title: "Text Styles",
-              code: htmlCodeGenTextStyles(userPluginSettings),
-              language: "HTML",
-            },
-          ];
-
         case "tailwind":
         case "tailwind_jsx":
           return [
@@ -340,11 +247,6 @@ const codegenMode = async () => {
               }),
               language: "HTML",
             },
-            // {
-            //   title: "Style",
-            //   code: tailwindMain(convertedSelection, defaultPluginSettings),
-            //   language: "HTML",
-            // },
             {
               title: "Tailwind Colors",
               code: (await retrieveGenericSolidUIColors("Tailwind"))
@@ -367,54 +269,6 @@ const codegenMode = async () => {
               language: "HTML",
             },
           ];
-        case "flutter":
-          return [
-            {
-              title: "Code",
-              code: flutterMain(convertedSelection, {
-                ...userPluginSettings,
-                flutterGenerationMode: "snippet",
-              }),
-              language: "SWIFT",
-            },
-            {
-              title: "Text Styles",
-              code: flutterCodeGenTextStyles(),
-              language: "SWIFT",
-            },
-          ];
-        case "swiftUI":
-          return [
-            {
-              title: "SwiftUI",
-              code: swiftuiMain(convertedSelection, {
-                ...userPluginSettings,
-                swiftUIGenerationMode: "snippet",
-              }),
-              language: "SWIFT",
-            },
-            {
-              title: "Text Styles",
-              code: swiftUICodeGenTextStyles(),
-              language: "SWIFT",
-            },
-          ];
-        // case "compose":
-        //   return [
-        //     {
-        //       title: "Jetpack Compose",
-        //       code: composeMain(convertedSelection, {
-        //         ...userPluginSettings,
-        //         composeGenerationMode: "snippet",
-        //       }),
-        //       language: "KOTLIN",
-        //     },
-        //     {
-        //       title: "Text Styles",
-        //       code: composeCodeGenTextStyles(),
-        //       language: "KOTLIN",
-        //     },
-        //   ];
         default:
           break;
       }

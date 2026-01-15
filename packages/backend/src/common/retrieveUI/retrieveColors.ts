@@ -1,20 +1,8 @@
 import { rgbTo6hex } from "../color";
 import {
-  swiftuiColor,
-  swiftuiGradient,
-} from "../../swiftui/builderImpl/swiftuiColor";
-import {
   tailwindColor,
   tailwindGradient,
 } from "../../tailwind/builderImpl/tailwindColor";
-import {
-  flutterColor,
-  flutterGradient,
-} from "../../flutter/builderImpl/flutterColor";
-import {
-  htmlColorFromFill,
-  htmlGradientFromFills,
-} from "../../html/builderImpl/htmlColor";
 import { calculateContrastRatio } from "./commonUI";
 import {
   LinearGradientConversion,
@@ -70,16 +58,8 @@ const convertSolidColor = async (
     contrastWhite: calculateContrastRatio(fill.color, white),
   };
 
-  if (framework === "Flutter") {
-    output.exportValue = flutterColor(fill.color, opacity);
-  } else if (framework === "HTML") {
-    output.exportValue = htmlColorFromFill(fill as any);
-  } else if (framework === "Tailwind") {
-    // Pass true to use CSS variable syntax for variables
-    output.exportValue = tailwindColor(fill as any, true).exportValue;
-  } else if (framework === "SwiftUI") {
-    output.exportValue = swiftuiColor(fill.color, opacity);
-  }
+  // Pass true to use CSS variable syntax for variables
+  output.exportValue = tailwindColor(fill as any, true).exportValue;
 
   return output;
 };
@@ -125,23 +105,9 @@ export const retrieveGenericLinearGradients = async (
           }
         }
 
-        let exportValue = "";
-        switch (framework) {
-          case "Flutter":
-            exportValue = flutterGradient(fill);
-            break;
-          case "HTML":
-            exportValue = htmlGradientFromFills(fill);
-            break;
-          case "Tailwind":
-            exportValue = tailwindGradient(fill);
-            break;
-          case "SwiftUI":
-            exportValue = swiftuiGradient(fill);
-            break;
-        }
+        const exportValue = tailwindGradient(fill);
         colorStr.push({
-          cssPreview: htmlGradientFromFills(fill),
+          cssPreview: exportValue,
           exportValue,
         });
       }

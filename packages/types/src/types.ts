@@ -1,45 +1,34 @@
 import "@figma/plugin-typings";
 // Settings
-export type Framework = "Flutter" | "SwiftUI" | "HTML" | "Tailwind" | "Compose";
-export interface HTMLSettings {
-  showLayerNames: boolean;
-  embedImages: boolean;
-  embedVectors: boolean;
-  useColorVariables: boolean;
-  htmlGenerationMode: "html" | "jsx" | "styled-components" | "svelte";
-}
-export interface TailwindSettings extends HTMLSettings {
+export type Framework = "Tailwind";
+
+export interface TailwindSettings {
+  // 代码生成模式（阶段2会进一步删除 twig）
   tailwindGenerationMode: "html" | "jsx" | "twig";
+
+  // Tailwind 专属配置
   roundTailwindValues: boolean;
   roundTailwindColors: boolean;
-  useColorVariables: boolean;
   customTailwindPrefix?: string;
-  embedVectors: boolean;
   baseFontSize: number;
   useTailwind4: boolean;
   thresholdPercent: number;
   baseFontFamily: string;
-  fontFamilyCustomConfig: Record<string, string[]>
+  fontFamilyCustomConfig: Record<string, string[]>;
+
+  // 与导出/预览相关的通用配置（从 HTMLSettings 迁移而来）
+  showLayerNames: boolean;
+  embedImages: boolean;
+  embedVectors: boolean;
+  useColorVariables: boolean;
 }
-export interface FlutterSettings {
-  flutterGenerationMode: "fullApp" | "stateless" | "snippet";
-}
-export interface SwiftUISettings {
-  swiftUIGenerationMode: "preview" | "struct" | "snippet";
-}
-export interface ComposeSettings {
-  composeGenerationMode: "snippet" | "composable" | "screen";
-}
-export interface PluginSettings
-  extends HTMLSettings,
-    TailwindSettings,
-    FlutterSettings,
-    SwiftUISettings,
-    ComposeSettings {
+
+export interface PluginSettings extends TailwindSettings {
   framework: Framework;
   useOldPluginVersion2025: boolean;
   responsiveRoot: boolean;
 }
+
 // Messaging
 export interface ConversionData {
   code: string;
@@ -221,7 +210,7 @@ export interface LocalCodegenPreferenceOptions extends PreferenceOptions {
   itemType: "individual_select";
   propertyName: Exclude<
     keyof PluginSettings,
-    "framework" | "flutterGenerationMode" | "swiftUIGenerationMode"
+    "framework"
   >;
   description: string;
   value?: boolean;

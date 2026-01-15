@@ -10,7 +10,6 @@ import {
 import { postConversionComplete, postEmptyMessage } from "./messaging";
 import { PluginSettings } from "types";
 import { convertToCode } from "./common/retrieveUI/convertToCode";
-import { generateHTMLPreview } from "./html/htmlMain";
 import { oldConvertNodesToAltNodes } from "./altNodes/oldAltConversion";
 import {
   getNodeByIdAsyncCalls,
@@ -79,7 +78,10 @@ export const run = async (settings: PluginSettings) => {
   );
 
   const generatePreviewStart = Date.now();
-  const htmlPreview = await generateHTMLPreview(convertedSelection, settings);
+  const htmlPreview = {
+    size: { width: 0, height: 0 },
+    content: code,
+  };
   console.log(
     `[benchmark] generateHTMLPreview: ${Date.now() - generatePreviewStart}ms`,
   );

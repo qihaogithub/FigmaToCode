@@ -20,8 +20,8 @@ interface CodePanelProps {
   preferenceOptions: LocalCodegenPreferenceOptions[];
   selectPreferenceOptions: SelectPreferenceOptions[];
   onPreferenceChanged: (
-    key: keyof PluginSettings,
-    value: boolean | string | number,
+    _key: keyof PluginSettings,
+    _value: boolean | string | number,
   ) => void;
 }
 
@@ -215,16 +215,7 @@ const CodePanel = (props: CodePanelProps) => {
           <>
             <SyntaxHighlighter
               language={
-                selectedFramework === "HTML" &&
-                settings?.htmlGenerationMode === "styled-components"
-                  ? "jsx"
-                  : selectedFramework === "Flutter"
-                    ? "dart"
-                    : selectedFramework === "SwiftUI"
-                      ? "swift"
-                      : selectedFramework === "Compose"
-                        ? "kotlin"
-                        : "html"
+                settings?.tailwindGenerationMode === "jsx" ? "jsx" : "html"
               }
               style={theme}
               customStyle={{

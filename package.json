@@ -7,6 +7,7 @@
     "build:watch": "turbo run build:watch",
     "dev": "turbo run dev --concurrency 20",
     "lint": "turbo run lint",
+    "typecheck": "turbo run type-check",
     "format": "prettier --write \"**/*.{ts,tsx,css,md}\""
   },
   "devDependencies": {
