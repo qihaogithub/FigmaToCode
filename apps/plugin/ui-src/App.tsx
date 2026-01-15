@@ -47,10 +47,16 @@ export default function App() {
 
   useEffect(() => {
     window.onmessage = (event: MessageEvent) => {
-      const untypedMessage = event.data.pluginMessage as Message;
-      console.log("[ui] message received:", untypedMessage);
+      const pluginMessage = (event.data as any)?.pluginMessage as
+        | Message
+        | undefined;
+      if (!pluginMessage || typeof (pluginMessage as any).type !== "string") {
+        return;
+      }
 
-      switch (untypedMessage.type) {
+      console.log("[ui] message received:", pluginMessage);
+
+      switch (pluginMessage.type) {
         case "conversionStart":
           setState((prevState) => ({
             ...prevState,
@@ -60,7 +66,7 @@ export default function App() {
           break;
 
         case "code":
-          const conversionMessage = untypedMessage as ConversionMessage;
+          const conversionMessage = pluginMessage as ConversionMessage;
           setState((prevState) => ({
             ...prevState,
             ...conversionMessage,
@@ -70,7 +76,7 @@ export default function App() {
           break;
 
         case "pluginSettingChanged":
-          const settingsMessage = untypedMessage as SettingsChangedMessage;
+          const settingsMessage = pluginMessage as SettingsChangedMessage;
           setState((prevState) => ({
             ...prevState,
             settings: settingsMessage.settings,
@@ -92,7 +98,7 @@ export default function App() {
           break;
 
         case "error":
-          const errorMessage = untypedMessage as ErrorMessage;
+          const errorMessage = pluginMessage as ErrorMessage;
 
           setState((prevState) => ({
             ...prevState,
@@ -104,8 +110,9 @@ export default function App() {
           break;
 
         case "selection-json":
-          const json = event.data.pluginMessage.data;
+          const json = (pluginMessage as any).data;
           copy(JSON.stringify(json, null, 2));
+          break;
 
         default:
           break;

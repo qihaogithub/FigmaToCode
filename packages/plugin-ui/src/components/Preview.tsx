@@ -37,10 +37,13 @@ const Preview: React.FC<{
   const containerWidth = expanded ? 320 : 240;
   const containerHeight = expanded ? 180 : 120;
 
+  const safeWidth = htmlPreview.size.width > 0 ? htmlPreview.size.width : 1;
+  const safeHeight = htmlPreview.size.height > 0 ? htmlPreview.size.height : 1;
+
   // Calculate scale factor first to use in content width calculation
   const scaleFactor = Math.min(
-    containerWidth / htmlPreview.size.width,
-    containerHeight / htmlPreview.size.height,
+    containerWidth / safeWidth,
+    containerHeight / safeHeight,
   );
 
   // Calculate content dimensions based on view mode
@@ -49,7 +52,7 @@ const Preview: React.FC<{
       ? containerWidth
       : viewMode === "mobile"
         ? Math.floor(containerWidth * 0.4) // Narrower for mobile
-        : htmlPreview.size.width * scaleFactor + 2; // I don't know why I need the 2, but it works always. I guess rounding error for zoom.
+        : safeWidth * scaleFactor + 2; // I don't know why I need the 2, but it works always. I guess rounding error for zoom.
 
   return (
     <div className="flex flex-col w-full bg-card rounded-lg border border-border">
@@ -143,7 +146,7 @@ const Preview: React.FC<{
                 viewMode === "mobile"
                   ? Math.min(containerHeight * 0.9, containerHeight)
                   : viewMode === "precision"
-                    ? htmlPreview.size.height * scaleFactor // Use scaled height for precision
+                    ? safeHeight * scaleFactor // Use scaled height for precision
                     : containerHeight,
               transition: "width 0.3s ease, height 0.3s ease",
             }}
@@ -166,14 +169,8 @@ const Preview: React.FC<{
                 <div
                   style={{
                     zoom: scaleFactor,
-                    width:
-                      viewMode === "precision"
-                        ? htmlPreview.size.width
-                        : "100%",
-                    height:
-                      viewMode === "precision"
-                        ? htmlPreview.size.height
-                        : "100%",
+                    width: viewMode === "precision" ? safeWidth : "100%",
+                    height: viewMode === "precision" ? safeHeight : "100%",
                     transformOrigin: "center",
                     maxWidth: "100%",
                     maxHeight: "100%",
@@ -184,7 +181,9 @@ const Preview: React.FC<{
                     transition: "all 0.3s ease",
                   }}
                   dangerouslySetInnerHTML={{
-                    __html: replaceExternalImagesWithCanvas(htmlPreview.content),
+                    __html: replaceExternalImagesWithCanvas(
+                      htmlPreview.content,
+                    ),
                   }}
                 />
               </div>

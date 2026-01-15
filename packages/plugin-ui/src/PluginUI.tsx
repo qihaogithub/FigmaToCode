@@ -18,6 +18,7 @@ import {
 } from "./codegenPreferenceOptions";
 import Loading from "./components/Loading";
 import { useState } from "react";
+import { InfoIcon } from "lucide-react";
 import React from "react";
 
 type PluginUIProps = {
@@ -36,39 +37,11 @@ type PluginUIProps = {
   isLoading: boolean;
 };
 
-const frameworks: Framework[] = ["Tailwind"];
-
-const FrameworkTabs = ({
-  frameworks,
-  selectedFramework,
-  setSelectedFramework,
-}: {
-  frameworks: Framework[];
-  selectedFramework: Framework;
-  setSelectedFramework: (framework: Framework) => void;
-}) => {
-  return (
-    <div className="grid grid-cols-4 sm:grid-cols-2 md:grid-cols-4 gap-1 grow">
-      {frameworks.map((tab) => (
-        <button
-          key={`tab ${tab}`}
-          className={`w-full h-8 flex items-center justify-center text-sm rounded-md transition-colors font-medium ${
-            selectedFramework === tab
-              ? "bg-primary text-primary-foreground shadow-xs"
-              : "bg-muted hover:bg-primary/90 hover:text-primary-foreground"
-          }`}
-          onClick={() => {
-            setSelectedFramework(tab as Framework);
-          }}
-        >
-          {tab}
-        </button>
-      ))}
-    </div>
-  );
-};
-
 export const PluginUI = (props: PluginUIProps) => {
+  const [activeTab, setActiveTab] = useState<"preview" | "code" | "about">(
+    "preview",
+  );
+
   const [previewExpanded, setPreviewExpanded] = useState(false);
   const [previewViewMode, setPreviewViewMode] = useState<
     "desktop" | "mobile" | "precision"
@@ -86,11 +59,37 @@ export const PluginUI = (props: PluginUIProps) => {
     <div className="flex flex-col h-full dark:text-white">
       <div className="p-2 dark:bg-card">
         <div className="flex gap-1 bg-muted dark:bg-card rounded-lg p-1">
-          <FrameworkTabs
-            frameworks={frameworks}
-            selectedFramework={props.selectedFramework}
-            setSelectedFramework={props.setSelectedFramework}
-          />
+          <button
+            className={`flex-1 h-8 flex items-center justify-center rounded-md text-sm font-medium transition-colors ${
+              activeTab === "preview"
+                ? "bg-primary text-primary-foreground shadow-xs"
+                : "bg-muted hover:bg-primary/90 hover:text-primary-foreground"
+            }`}
+            onClick={() => setActiveTab("preview")}
+          >
+            Preview
+          </button>
+          <button
+            className={`flex-1 h-8 flex items-center justify-center rounded-md text-sm font-medium transition-colors ${
+              activeTab === "code"
+                ? "bg-primary text-primary-foreground shadow-xs"
+                : "bg-muted hover:bg-primary/90 hover:text-primary-foreground"
+            }`}
+            onClick={() => setActiveTab("code")}
+          >
+            Code
+          </button>
+          <button
+            className={`w-8 h-8 flex items-center justify-center rounded-md text-sm font-medium ${
+              activeTab === "about"
+                ? "bg-primary text-primary-foreground shadow-xs"
+                : "bg-muted hover:bg-primary/90 hover:text-primary-foreground"
+            }`}
+            onClick={() => setActiveTab("about")}
+            aria-label="About"
+          >
+            <InfoIcon size={16} />
+          </button>
         </div>
       </div>
       <div
@@ -101,8 +100,9 @@ export const PluginUI = (props: PluginUIProps) => {
         }}
       ></div>
       <div className="flex flex-col h-full overflow-y-auto">
-        <div className="flex flex-col items-center px-4 py-2 gap-2 dark:bg-transparent">
-            {isEmpty === false && props.htmlPreview && (
+        {activeTab === "preview" ? (
+          <div className="flex flex-col items-center justify-center px-4 py-2 gap-2 dark:bg-transparent h-full">
+            {isEmpty === false && props.htmlPreview ? (
               <Preview
                 htmlPreview={props.htmlPreview}
                 expanded={previewExpanded}
@@ -112,13 +112,20 @@ export const PluginUI = (props: PluginUIProps) => {
                 bgColor={previewBgColor}
                 setBgColor={setPreviewBgColor}
               />
+            ) : (
+              <div className="text-center text-muted-foreground">
+                <p>No preview available</p>
+              </div>
             )}
-
+          </div>
+        ) : activeTab === "code" ? (
+          <div className="flex flex-col items-center px-4 py-2 gap-2 dark:bg-transparent">
             {warnings.length > 0 && <WarningsPanel warnings={warnings} />}
 
             <CodePanel
               code={props.code}
               selectedFramework={props.selectedFramework}
+              setSelectedFramework={props.setSelectedFramework}
               preferenceOptions={preferenceOptions}
               selectPreferenceOptions={selectPreferenceOptions}
               settings={props.settings}
@@ -142,7 +149,12 @@ export const PluginUI = (props: PluginUIProps) => {
                 }}
               />
             )}
-        </div>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center px-4 py-8 text-center text-muted-foreground">
+            <p>About 页面暂未实现</p>
+          </div>
+        )}
       </div>
     </div>
   );

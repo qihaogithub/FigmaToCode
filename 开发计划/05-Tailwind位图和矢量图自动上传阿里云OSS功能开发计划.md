@@ -6,10 +6,10 @@
 
 实现方式：当 Tailwind 代码生成过程中检测到位图（Image fills）或矢量图（VECTOR / SVG）时，插件会导出对应资源，并调用你维护的 **Cloudflare Worker 上传接口**将资源写入 **R2**，然后在生成的代码中使用返回的 URL，替代当前的占位符与矩形降级。
 
-
 ## 前置条件
 
 **必须先完成以下阶段**：
+
 - 阶段1：删除 HTML、Flutter、SwiftUI、Compose 框架
 - 阶段2：删除 Twig 功能
 - 阶段3：删除 Email 功能（保留 About）
@@ -22,6 +22,7 @@
 当前插件在导出 Tailwind 格式代码时，如果设计稿存在位图（Image fills），会提示 "Image fills are replaced with placeholders" 并使用占位符图片替代。
 
 **相关代码位置：**
+
 - `packages/backend/src/tailwind/tailwindMain.ts`（位图检测/警告/占位符逻辑）
 - `packages/backend/src/common/images.ts`（图片导出与占位符）
 
@@ -30,12 +31,13 @@
 当前插件在导出 Tailwind 格式代码时，如果设计稿存在矢量图（VECTOR 节点），会提示 "Vector is not supported"，并被转换为简单的矩形。
 
 **相关代码位置：**
+
 - `packages/backend/src/tailwind/tailwindMain.ts`（VECTOR 警告与降级）
 - `packages/backend/src/altNodes/altNodeUtils.ts`（导出 SVG 的能力，当前主要用于 `embedVectors`）
 
 ## 功能目标
 
-1. **自动上传位图**：检测到位图 fill 时，导出 PNG（或 WebP/PNG，先以 PNG 为准），上传到 R2
+1. **自动上传位图**：检测到位图 fill 时，导出 2倍图PNG，上传到 R2
 2. **自动上传矢量图**：检测到 VECTOR 节点时，导出 SVG，上传到 R2
 3. **生成可直接访问的 URL**：在生成的 Tailwind 代码中直接写入 `https://...` URL
 4. **用户零配置**：插件默认内置 Worker 上传端点，不要求用户填写 Token
@@ -61,6 +63,7 @@
   - 返回公开可访问 URL
 
 > 关键原则：
+>
 > - **R2 的密钥只存在 Worker 环境变量**，插件端不持有任何密钥。
 
 ### 2. 插件设置（建议最小化）
@@ -83,6 +86,7 @@ interface AssetUploadSettings {
 ```
 
 说明：
+
 - `uploadEndpoint` 默认值由你内置在插件里；文档层面不要求“最终用户配置”。
 - 后续如果你需要在不同环境（dev/prod）切换 endpoint，可以通过构建时注入或常量区分。
 
@@ -92,6 +96,7 @@ interface AssetUploadSettings {
 > 推荐做“两阶段 pipeline”，降低对现有生成函数签名的侵入。
 
 **阶段A：扫描与收集资源**
+
 - 遍历待转换节点，收集资源引用：
   - 位图 fills（IMAGE）
   - 矢量节点（VECTOR）
@@ -99,10 +104,12 @@ interface AssetUploadSettings {
 - 计算 hash（建议使用 WebCrypto：`crypto.subtle.digest('SHA-256', bytes)`）
 
 **阶段B：上传与映射**
+
 - 对未命中缓存的 hash 进行并发上传（受 `maxConcurrentUploads` 限制）
 - 得到 `hash -> url` 映射
 
 **阶段C：生成代码**
+
 - 在代码生成阶段读取映射：
   - 位图：替换 `<img src="...">` 或 `bg-[url(...)]`
   - 矢量：替换为 `<img src="...svg">`（或按你的 Tailwind 输出约定）
@@ -153,6 +160,7 @@ interface AssetUploadSettings {
 - **TTL**：默认 24h
 
 说明：
+
 - TTL 的意义：如果你未来启用了清理策略或 URL 变动，可自动重新上传/刷新。
 
 ### 6. 错误处理与降级
@@ -167,9 +175,11 @@ interface AssetUploadSettings {
 > 本清单只描述“需要改哪些文件”，不包含实现细节。
 
 ### 类型定义
+
 - [ ] `packages/types/src/types.ts`：新增 `AssetUploadSettings` 并合入 `PluginSettings`
 
 ### 后端/插件代码（导出与上传）
+
 - [ ] `packages/backend/src/common/images.ts`：
   - 新增：导出 bytes 的通用方法（位图）
   - 新增：计算 hash（WebCrypto）
@@ -181,10 +191,12 @@ interface AssetUploadSettings {
   - 生成阶段替换 URL（或通过上游传递映射）
 
 ### UI（可选）
+
 - [ ] `packages/plugin-ui/src/codegenPreferenceOptions.ts`：添加开关（例如“自动上传资源”）
 - [ ] `packages/plugin-ui/src/components/...`：如需要展示 endpoint/状态/清理缓存按钮
 
 ### Cloudflare Worker（仓库外）
+
 - [ ] 新建 Worker：实现 `/upload`，并绑定 R2
 
 ## 风险评估（计划修订）
@@ -254,6 +266,7 @@ interface AssetUploadSettings {
 ## 预期效果
 
 **位图：**
+
 ```html
 <!-- 之前 -->
 <img src="https://placehold.co/200x200" class="..." />
@@ -263,6 +276,7 @@ interface AssetUploadSettings {
 ```
 
 **矢量图：**
+
 ```html
 <!-- 之前：VECTOR 降级为矩形 -->
 <div class="..." style="width: 24px; height: 24px;"></div>

@@ -10,12 +10,12 @@ import { coldarkDark as theme } from "react-syntax-highlighter/dist/esm/styles/p
 import { CopyButton } from "./CopyButton";
 import EmptyState from "./EmptyState";
 import SettingsGroup from "./SettingsGroup";
-import FrameworkTabs from "./FrameworkTabs";
 import { TailwindSettings } from "./TailwindSettings";
 
 interface CodePanelProps {
   code: string;
   selectedFramework: Framework;
+  setSelectedFramework: (framework: Framework) => void;
   settings: PluginSettings | null;
   preferenceOptions: LocalCodegenPreferenceOptions[];
   selectPreferenceOptions: SelectPreferenceOptions[];
@@ -24,6 +24,8 @@ interface CodePanelProps {
     _value: boolean | string | number,
   ) => void;
 }
+
+const frameworks: Framework[] = ["Tailwind"];
 
 const CodePanel = (props: CodePanelProps) => {
   const [syntaxHovered, setSyntaxHovered] = useState(false);
@@ -134,10 +136,22 @@ const CodePanel = (props: CodePanelProps) => {
 
   return (
     <div className="w-full flex flex-col gap-2 mt-2">
-      <div className="flex items-center justify-between w-full">
-        <p className="text-lg font-medium text-center dark:text-white rounded-lg">
-          Code
-        </p>
+      <div className="flex items-center justify-between w-full gap-1">
+        <div className="flex gap-1 bg-muted dark:bg-card rounded-lg p-1 flex-1">
+          {frameworks.map((framework) => (
+            <button
+              key={framework}
+              className={`flex-1 h-8 flex items-center justify-center rounded-md text-sm font-medium transition-colors ${
+                selectedFramework === framework
+                  ? "bg-primary text-primary-foreground shadow-xs"
+                  : "bg-muted hover:bg-primary/90 hover:text-primary-foreground"
+              }`}
+              onClick={() => props.setSelectedFramework(framework)}
+            >
+              {framework}
+            </button>
+          ))}
+        </div>
         {!isCodeEmpty && (
           <CopyButton
             value={prefixedCode}
@@ -167,18 +181,25 @@ const CodePanel = (props: CodePanelProps) => {
               {selectableSettingsFiltered.map((preference) => {
                 // Regular toggle buttons for other options
                 return (
-                  <FrameworkTabs
-                    options={preference.options}
-                    selectedValue={
-                      (settings?.[preference.propertyName] ??
-                        preference.options.find((option) => option.isDefault)
-                          ?.value ??
-                        "") as string
-                    }
-                    onChange={(value) => {
-                      onPreferenceChanged(preference.propertyName, value);
-                    }}
-                  />
+                  <div className="flex gap-1 bg-muted dark:bg-card rounded-lg p-1">
+                    {preference.options.map((option) => (
+                      <button
+                        key={option.value}
+                        className={`flex-1 h-8 flex items-center justify-center rounded-md text-sm font-medium transition-colors ${
+                          ((settings?.[preference.propertyName] ??
+                            preference.options.find((o) => o.isDefault)?.value ??
+                            "") as string) === option.value
+                            ? "bg-primary text-primary-foreground shadow-xs"
+                            : "bg-muted hover:bg-primary/90 hover:text-primary-foreground"
+                        }`}
+                        onClick={() => {
+                          onPreferenceChanged(preference.propertyName, option.value);
+                        }}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
                 );
               })}
             </div>

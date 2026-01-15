@@ -7,6 +7,7 @@
 ## 前置条件
 
 **必须先完成以下阶段**：
+
 - 阶段1：删除 HTML、Flutter、SwiftUI、Compose 框架
 - 阶段2：删除 Twig 功能
 - 阶段3：删除 Email 功能（保留 About）
@@ -16,9 +17,10 @@
 ## 当前UI结构分析
 
 ### 当前布局
+
 ```
 ┌─────────────────────────────────────┐
-│  [Tailwind] [About]                 │
+│  [Tailwind]               │
 ├─────────────────────────────────────┤
 │                                     │
 │  ┌─────────────────────────────┐   │
@@ -55,9 +57,10 @@
 ## 优化后的UI结构
 
 ### 新布局设计
+
 ```
 ┌─────────────────────────────────────┐
-│     [Preview] [Code] [About]       │
+│     [Preview] [Code]               │
 ├─────────────────────────────────────┤
 │                                     │
 │  Preview Tab 内容：                  │
@@ -99,10 +102,12 @@
 ## 涉及的文件清单
 
 ### 需要修改的文件
+
 1. `packages/plugin-ui/src/PluginUI.tsx` - 主 UI 组件（207行）
 2. `packages/plugin-ui/src/components/CodePanel.tsx` - 代码面板组件（262行）
 
 ### 需要删除的文件
+
 1. `packages/plugin-ui/src/components/FrameworkTabs.tsx` - 框架选项卡组件（可选）
 
 ## 详细修改步骤
@@ -116,13 +121,17 @@
 **位置**: 第 55-56 行
 
 **原代码**:
+
 ```typescript
 const [showAbout, setShowAbout] = useState(false);
 ```
 
 **修改为**:
+
 ```typescript
-const [activeTab, setActiveTab] = useState<"preview" | "code" | "about">("preview");
+const [activeTab, setActiveTab] = useState<"preview" | "code" | "about">(
+  "preview",
+);
 ```
 
 **说明**: 使用单一状态管理三个 Tab 的切换，默认为 "preview"。
@@ -159,6 +168,7 @@ const frameworks: Framework[] = ["Tailwind"];
 **位置**: 第 89-135 行
 
 **原代码**:
+
 ```typescript
 <div className="p-2 dark:bg-card">
   <div className="flex gap-1 bg-muted dark:bg-card rounded-lg p-1">
@@ -187,6 +197,7 @@ const frameworks: Framework[] = ["Tailwind"];
 ```
 
 **修改为**:
+
 ```typescript
 <div className="p-2 dark:bg-card">
   <div className="flex gap-1 bg-muted dark:bg-card rounded-lg p-1">
@@ -226,6 +237,7 @@ const frameworks: Framework[] = ["Tailwind"];
 ```
 
 **说明**:
+
 - 创建三个 Tab 按钮：Preview、Code、About
 - Preview 和 Code 按钮使用 `flex-1` 平分空间
 - About 按钮使用固定宽度 `w-8`
@@ -236,6 +248,7 @@ const frameworks: Framework[] = ["Tailwind"];
 **位置**: 第 137-206 行
 
 **原代码**:
+
 ```typescript
 <div className="flex flex-col h-full overflow-y-auto">
   {showAbout ? (
@@ -291,6 +304,7 @@ const frameworks: Framework[] = ["Tailwind"];
 ```
 
 **修改为**:
+
 ```typescript
 <div className="flex flex-col h-full overflow-y-auto">
   {activeTab === "preview" ? (
@@ -353,6 +367,7 @@ const frameworks: Framework[] = ["Tailwind"];
 ```
 
 **说明**:
+
 - Preview Tab：只显示 Preview 组件，居中显示
 - Code Tab：显示 WarningsPanel、CodePanel、ColorsPanel、GradientsPanel
 - About Tab：显示 About 组件
@@ -368,6 +383,7 @@ const frameworks: Framework[] = ["Tailwind"];
 **位置**: 第 15-26 行
 
 **原代码**:
+
 ```typescript
 interface CodePanelProps {
   code: string;
@@ -383,6 +399,7 @@ interface CodePanelProps {
 ```
 
 **修改为**:
+
 ```typescript
 interface CodePanelProps {
   code: string;
@@ -405,6 +422,7 @@ interface CodePanelProps {
 **位置**: 第 68 行之前（在 return 语句之后）
 
 **原代码**:
+
 ```typescript
 return (
   <div className="w-full flex flex-col gap-2 mt-2">
@@ -423,6 +441,7 @@ return (
 ```
 
 **修改为**:
+
 ```typescript
 const frameworks: Framework[] = ["Tailwind"];
 
@@ -455,6 +474,7 @@ return (
 ```
 
 **说明**:
+
 - 在 CodePanel 顶部添加框架选项卡
 - 使用与顶部 Tab 相同的样式
 - 框架选项卡占据大部分空间（flex-1）
@@ -837,6 +857,7 @@ export const PluginUI = (props: PluginUIProps) => {
 ## 后续步骤
 
 完成本阶段后，可以继续执行：
+
 - 阶段5：Tailwind位图和矢量图上传OSS功能
 
 ---

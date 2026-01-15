@@ -1,8 +1,8 @@
-import { HTMLSettings, TailwindSettings } from "types";
+import { TailwindSettings } from "types";
 
 export const getCommonPositionValue = (
   node: SceneNode,
-  settings?: HTMLSettings | TailwindSettings,
+  settings?: TailwindSettings,
 ): { x: number; y: number } => {
   if (node.parent && node.parent.absoluteBoundingBox) {
     if (settings?.embedVectors && node.svg) {

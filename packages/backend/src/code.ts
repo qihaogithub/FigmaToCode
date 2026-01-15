@@ -78,8 +78,9 @@ export const run = async (settings: PluginSettings) => {
   );
 
   const generatePreviewStart = Date.now();
+  const previewTarget = selection[0];
   const htmlPreview = {
-    size: { width: 0, height: 0 },
+    size: { width: previewTarget?.width ?? 0, height: previewTarget?.height ?? 0 },
     content: code,
   };
   console.log(
