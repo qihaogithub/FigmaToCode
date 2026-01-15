@@ -33,16 +33,18 @@
 
 **文件**: `packages/types/src/types.ts`
 
+**重要说明（计划修订）**：阶段1完成后，类型层将只保留 Tailwind，`HTMLSettings` 将被删除，因此此处示例不应再出现 `extends HTMLSettings`。
+
 **修改内容**:
 ```typescript
-// 修改前
-export interface TailwindSettings extends HTMLSettings {
+// 修改前（阶段1结束态）
+export interface TailwindSettings {
   tailwindGenerationMode: "html" | "jsx" | "twig";
   // ... 其他属性
 }
 
 // 修改后
-export interface TailwindSettings extends HTMLSettings {
+export interface TailwindSettings {
   tailwindGenerationMode: "html" | "jsx";
   // ... 其他属性
 }
@@ -52,6 +54,7 @@ export interface TailwindSettings extends HTMLSettings {
 - 类型检查
 - TypeScript 编译
 - 所有使用该类型的代码
+- 历史配置兼容（见下文“向后兼容性/迁移逻辑”）
 
 ---
 

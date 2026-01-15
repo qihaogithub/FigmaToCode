@@ -1,8 +1,10 @@
-# 阶段3：删除 Email 和 About 功能
+# 阶段3：删除 Email 功能（保留 About）
 
 ## 概述
 
-本计划将从 Figma to Code 插件中删除 Email 选项卡和 About（感叹号图标）页面相关功能，简化 UI 界面。
+本阶段的目标是从 Figma to Code 插件中**删除 Email 宣传入口与页面**，以简化 UI。
+
+**注意（计划修订）**：About（感叹号图标）功能在本仓库后续阶段（阶段4：Preview/Code 一级 Tab）仍会保留，因此本阶段**不删除 About**，仅删除 Email。
 
 ## 前置条件
 

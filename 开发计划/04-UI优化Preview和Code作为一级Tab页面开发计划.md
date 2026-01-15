@@ -9,7 +9,9 @@
 **必须先完成以下阶段**：
 - 阶段1：删除 HTML、Flutter、SwiftUI、Compose 框架
 - 阶段2：删除 Twig 功能
-- 阶段3：删除 Email 和 About 功能
+- 阶段3：删除 Email 功能（保留 About）
+
+> 说明：阶段3的目标已修订为“仅删除 Email，保留 About”，因此本阶段仍可以在顶部保留 About Tab。
 
 ## 当前UI结构分析
 
