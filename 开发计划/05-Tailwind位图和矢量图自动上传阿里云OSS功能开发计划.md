@@ -6,15 +6,6 @@
 
 实现方式：当 Tailwind 代码生成过程中检测到位图（Image fills）或矢量图（VECTOR / SVG）时，插件会导出对应资源，并调用你维护的 **Cloudflare Worker 上传接口**将资源写入 **R2**，然后在生成的代码中使用返回的 URL，替代当前的占位符与矩形降级。
 
-## 前置条件
-
-**必须先完成以下阶段**：
-
-- 阶段1：删除 HTML、Flutter、SwiftUI、Compose 框架
-- 阶段2：删除 Twig 功能
-- 阶段3：删除 Email 功能（保留 About）
-- 阶段4：UI 优化（Preview 和 Code 作为一级 Tab）
-
 ## 现状分析
 
 ### 位图处理现状
