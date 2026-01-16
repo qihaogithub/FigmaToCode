@@ -13,6 +13,7 @@
   },
   "codegenLanguages": [
     { "label": "Tailwind", "value": "tailwind" },
-    { "label": "Tailwind (JSX)", "value": "tailwind_jsx" }
+    { "label": "Tailwind (JSX)", "value": "tailwind_jsx" },
+    { "label": "HTML", "value": "html" }
   ]
 }

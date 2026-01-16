@@ -2,7 +2,7 @@ import { retrieveTopFill } from "../common/retrieveFill";
 import { indentString } from "../common/indentString";
 import { addWarning } from "../common/commonConversionWarnings";
 import { getVisibleNodes } from "../common/nodeVisibility";
-import { getPlaceholderImage } from "../common/images";
+import { getPlaceholderImage, exportNodeAsBase64PNG } from "../common/images";
 import { TailwindTextBuilder } from "./tailwindTextBuilder";
 import { TailwindDefaultBuilder } from "./tailwindDefaultBuilder";
 import { tailwindAutoLayoutProps } from "./builderImpl/tailwindAutoLayout";
@@ -20,11 +20,12 @@ const SELF_CLOSING_TAGS = ["img"];
 export const tailwindMain = async (
   sceneNode: Array<SceneNode>,
   settings: PluginSettings,
+  options?: { isPreview?: boolean },
 ): Promise<string> => {
   localTailwindSettings = settings;
   previousExecutionCache = [];
 
-  let result = await tailwindWidgetGenerator(sceneNode, settings);
+  let result = await tailwindWidgetGenerator(sceneNode, settings, options);
 
   // Remove the initial newline that is made in Container
   if (result.startsWith("\n")) {
@@ -37,15 +38,18 @@ export const tailwindMain = async (
 const tailwindWidgetGenerator = async (
   sceneNode: ReadonlyArray<SceneNode>,
   settings: TailwindSettings,
+  options?: { isPreview?: boolean },
 ): Promise<string> => {
   const visibleNodes = getVisibleNodes(sceneNode);
-  const promiseOfConvertedCode = visibleNodes.map(convertNode(settings));
+  const promiseOfConvertedCode = visibleNodes.map(
+    convertNode(settings, options),
+  );
   const code = (await Promise.all(promiseOfConvertedCode)).join("");
   return code;
 };
 
 const convertNode =
-  (settings: TailwindSettings) =>
+  (settings: TailwindSettings, options?: { isPreview?: boolean }) =>
   async (node: SceneNode): Promise<string> => {
     if (settings.embedVectors && (node as any).canBeFlattened) {
       const altNode = await renderAndAttachSVG(node);
@@ -57,20 +61,20 @@ const convertNode =
     switch (node.type) {
       case "RECTANGLE":
       case "ELLIPSE":
-        return tailwindContainer(node, "", "", settings);
+        return tailwindContainer(node, "", "", settings, options);
       case "GROUP":
-        return tailwindGroup(node, settings);
+        return tailwindGroup(node, settings, options);
       case "FRAME":
       case "COMPONENT":
       case "INSTANCE":
       case "COMPONENT_SET":
-        return tailwindFrame(node, settings);
+        return tailwindFrame(node, settings, options);
       case "TEXT":
         return tailwindText(node, settings);
       case "LINE":
         return tailwindLine(node, settings);
       case "SECTION":
-        return tailwindSection(node, settings);
+        return tailwindSection(node, settings, options);
       case "VECTOR":
         if (!settings.embedVectors) {
           addWarning("Vector is not supported");
@@ -80,6 +84,7 @@ const convertNode =
           "",
           "",
           settings,
+          options,
         );
       default:
         addWarning(`${node.type} node is not supported`);
@@ -103,6 +108,7 @@ const tailwindWrapSVG = (
 const tailwindGroup = async (
   node: GroupNode,
   settings: TailwindSettings,
+  options?: { isPreview?: boolean },
 ): Promise<string> => {
   // Ignore the view when size is zero or less or if there are no children
   if (node.width < 0 || node.height <= 0 || node.children.length === 0) {
@@ -116,11 +122,15 @@ const tailwindGroup = async (
 
   if (builder.attributes || builder.style) {
     const attr = builder.build("");
-    const generator = await tailwindWidgetGenerator(node.children, settings);
+    const generator = await tailwindWidgetGenerator(
+      node.children,
+      settings,
+      options,
+    );
     return `\n<div${attr}>${indentString(generator)}\n</div>`;
   }
 
-  return await tailwindWidgetGenerator(node.children, settings);
+  return await tailwindWidgetGenerator(node.children, settings, options);
 };
 
 export const tailwindText = (
@@ -171,9 +181,13 @@ export const tailwindText = (
 const tailwindFrame = async (
   node: FrameNode | InstanceNode | ComponentNode | ComponentSetNode,
   settings: TailwindSettings,
+  options?: { isPreview?: boolean },
 ): Promise<string> => {
-
-  const childrenStr = await tailwindWidgetGenerator(node.children, settings);
+  const childrenStr = await tailwindWidgetGenerator(
+    node.children,
+    settings,
+    options,
+  );
 
   const clipsContentClass =
     node.clipsContent && "children" in node && node.children.length > 0
@@ -190,11 +204,16 @@ const tailwindFrame = async (
     .filter(Boolean)
     .join(" ");
 
-  return tailwindContainer(node, childrenStr, combinedProps, settings);
+  return await tailwindContainer(
+    node,
+    childrenStr,
+    combinedProps,
+    settings,
+    options,
+  );
 };
 
-
-export const tailwindContainer = (
+export const tailwindContainer = async (
   node: SceneNode &
     SceneNodeMixin &
     BlendMixin &
@@ -204,7 +223,8 @@ export const tailwindContainer = (
   children: string,
   additionalAttr: string,
   settings: TailwindSettings,
-): string => {
+  options?: { isPreview?: boolean },
+): Promise<string> => {
   // Ignore the view when size is zero or less
   if (node.width < 0 || node.height < 0) {
     return children;
@@ -223,30 +243,50 @@ export const tailwindContainer = (
   // Determine if we should use img tag
   let tag = "div";
   let src = "";
+  let inlineStyle = "";
   const topFill = retrieveTopFill(node.fills);
 
   if (topFill?.type === "IMAGE") {
-    addWarning("Image fills are replaced with placeholders");
-    const imageURL = getPlaceholderImage(node.width, node.height);
-
-    if (!("children" in node) || node.children.length === 0) {
-      tag = "img";
-      src = ` src="${imageURL}"`;
+    if (options?.isPreview) {
+      // In preview mode, we want to see the actual image
+      const base64 = await exportNodeAsBase64PNG(node as any, true);
+      if (base64) {
+        if (!("children" in node) || node.children.length === 0) {
+          tag = "img";
+          src = ` src="${base64}"`;
+        } else {
+          // Use inline style for background image in preview to avoid massive class names
+          // and ensure it works even if Tailwind config doesn't support arbitrary values perfectly
+          const styleProp =
+            settings.tailwindGenerationMode === "jsx"
+              ? `style={{ backgroundImage: 'url(${base64})' }}`
+              : `style="background-image: url('${base64}')"`;
+          inlineStyle = ` ${styleProp}`;
+        }
+      }
     } else {
-      builder.addAttributes(`bg-[url(${imageURL})]`);
+      addWarning("Image fills are replaced with placeholders");
+      const imageURL = getPlaceholderImage(node.width, node.height);
+
+      if (!("children" in node) || node.children.length === 0) {
+        tag = "img";
+        src = ` src="${imageURL}"`;
+      } else {
+        builder.addAttributes(`bg-[url(${imageURL})]`);
+      }
     }
   }
 
   // Generate appropriate HTML
   if (children) {
-    return `\n<${tag}${build}${src}>${indentString(children)}\n</${tag}>`;
+    return `\n<${tag}${build}${src}${inlineStyle}>${indentString(children)}\n</${tag}>`;
   } else if (
     SELF_CLOSING_TAGS.includes(tag) ||
     settings.tailwindGenerationMode === "jsx"
   ) {
-    return `\n<${tag}${build}${src} />`;
+    return `\n<${tag}${build}${src}${inlineStyle} />`;
   } else {
-    return `\n<${tag}${build}${src}></${tag}>`;
+    return `\n<${tag}${build}${src}${inlineStyle}></${tag}>`;
   }
 };
 
@@ -264,8 +304,13 @@ export const tailwindLine = (
 export const tailwindSection = async (
   node: SectionNode,
   settings: TailwindSettings,
+  options?: { isPreview?: boolean },
 ): Promise<string> => {
-  const childrenStr = await tailwindWidgetGenerator(node.children, settings);
+  const childrenStr = await tailwindWidgetGenerator(
+    node.children,
+    settings,
+    options,
+  );
   const builder = new TailwindDefaultBuilder(node, settings)
     .size()
     .position()

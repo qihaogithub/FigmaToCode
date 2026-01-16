@@ -10,6 +10,7 @@ import {
 import { postConversionComplete, postEmptyMessage } from "./messaging";
 import { PluginSettings } from "types";
 import { convertToCode } from "./common/retrieveUI/convertToCode";
+import { generateHTMLPreview } from "./html/htmlMain";
 import { oldConvertNodesToAltNodes } from "./altNodes/oldAltConversion";
 import {
   getNodeByIdAsyncCalls,
@@ -78,13 +79,13 @@ export const run = async (settings: PluginSettings) => {
   );
 
   const generatePreviewStart = Date.now();
-  const previewTarget = selection[0];
-  const htmlPreview = {
-    size: { width: previewTarget?.width ?? 0, height: previewTarget?.height ?? 0 },
-    content: code,
-  };
+  const htmlPreview = await generateHTMLPreview(convertedSelection, settings);
   console.log(
     `[benchmark] generateHTMLPreview: ${Date.now() - generatePreviewStart}ms`,
+  );
+  console.log(
+    "[DEBUG] htmlPreview content snippet:",
+    htmlPreview.content.slice(0, 200),
   );
 
   const colorPanelStart = Date.now();
