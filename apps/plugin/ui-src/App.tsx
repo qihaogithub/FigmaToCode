@@ -31,7 +31,7 @@ const emptyPreview = { size: { width: 0, height: 0 }, content: "" };
 export default function App() {
   const [state, setState] = useState<AppState>({
     code: "",
-    selectedFramework: "HTML",
+    selectedFramework: "Tailwind",
     isLoading: false,
     htmlPreview: emptyPreview,
     settings: null,

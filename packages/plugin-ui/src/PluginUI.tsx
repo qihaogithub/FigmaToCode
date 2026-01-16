@@ -42,12 +42,8 @@ export const PluginUI = (props: PluginUIProps) => {
     "preview",
   );
 
-  const [previewExpanded, setPreviewExpanded] = useState(false);
-  const [previewViewMode, setPreviewViewMode] = useState<
-    "desktop" | "mobile" | "precision"
-  >("precision");
   const [previewBgColor, setPreviewBgColor] = useState<"white" | "black">(
-    "white",
+    "black",
   );
 
   if (props.isLoading) return <Loading />;
@@ -101,14 +97,10 @@ export const PluginUI = (props: PluginUIProps) => {
       ></div>
       <div className="flex flex-col h-full overflow-y-auto">
         {activeTab === "preview" ? (
-          <div className="flex flex-col items-center justify-center px-4 py-2 gap-2 dark:bg-transparent h-full">
+          <div className="flex flex-col items-center justify-center h-full w-full overflow-hidden">
             {isEmpty === false && props.htmlPreview ? (
               <Preview
                 htmlPreview={props.htmlPreview}
-                expanded={previewExpanded}
-                setExpanded={setPreviewExpanded}
-                viewMode={previewViewMode}
-                setViewMode={setPreviewViewMode}
                 bgColor={previewBgColor}
                 setBgColor={setPreviewBgColor}
               />
