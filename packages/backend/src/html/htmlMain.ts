@@ -412,7 +412,7 @@ const convertNode = (settings: HTMLSettings) => async (node: SceneNode) => {
       return htmlLine(node, settings);
     case "VECTOR":
       if (!settings.embedVectors && !isPreviewGlobal) {
-        addWarning("Vector is not supported");
+        addWarning("不支持矢量图");
       }
       return await htmlContainer(
         { ...node, type: "RECTANGLE" } as any,
@@ -421,7 +421,7 @@ const convertNode = (settings: HTMLSettings) => async (node: SceneNode) => {
         settings,
       );
     default:
-      addWarning(`${node.type} node is not supported`);
+      addWarning(`不支持 ${node.type} 类型的节点`);
       return "";
   }
 };

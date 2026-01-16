@@ -19,7 +19,7 @@
 
 ### 位图处理现状
 
-当前插件在导出 Tailwind 格式代码时，如果设计稿存在位图（Image fills），会提示 "Image fills are replaced with placeholders" 并使用占位符图片替代。
+当前插件在导出 Tailwind 格式代码时，如果设计稿存在位图（Image fills），会提示 "图像填充被占位符替换" 并使用占位符图片替代。
 
 **相关代码位置：**
 

@@ -109,7 +109,7 @@ export const renderAndAttachSVG = async (node: any) => {
         node.svg = svg;
       }
     } catch (error) {
-      addWarning(`Failed rendering SVG for ${node.name}`);
+      addWarning(`渲染 ${node.name} 的 SVG 失败`);
       console.error(`Error rendering SVG for ${node.type}:${node.id}`);
       console.error(error);
     }

@@ -10,7 +10,7 @@ interface FormFieldProps {
   helpText?: string;
 
   // Validation props
-  type?: "text" | "number"| "json";
+  type?: "text" | "number" | "json";
   min?: number;
   max?: number;
   suffix?: string;
@@ -37,7 +37,7 @@ const FormField = React.memo(
     max,
     suffix,
     disallowedPattern = /\s/,
-    disallowedMessage = "Input cannot contain spaces",
+    disallowedMessage = "输入不能包含空格",
     showPreview = false,
     previewExamples = ["flex"],
     previewTransform,
@@ -78,7 +78,7 @@ const FormField = React.memo(
         // Check for non-numeric characters
         if (/[^0-9]/.test(value)) {
           setHasError(true);
-          setErrorMessage("Only numbers are allowed");
+          setErrorMessage("只能输入数字");
           return false;
         }
 
@@ -86,19 +86,19 @@ const FormField = React.memo(
 
         if (isNaN(numValue)) {
           setHasError(true);
-          setErrorMessage("Please enter a valid number");
+          setErrorMessage("请输入有效数字");
           return false;
         }
 
         if (min !== undefined && numValue < min) {
           setHasError(true);
-          setErrorMessage(`Minimum value is ${min}`);
+          setErrorMessage(`最小值为 ${min}`);
           return false;
         }
 
         if (max !== undefined && numValue > max) {
           setHasError(true);
-          setErrorMessage(`Maximum value is ${max}`);
+          setErrorMessage(`最大值为 ${max}`);
           return false;
         }
 
@@ -116,41 +116,45 @@ const FormField = React.memo(
         }
 
         try {
-            // Try to parse the JSON
-            const config = JSON.parse(value);
+          // Try to parse the JSON
+          const config = JSON.parse(value);
 
-            // Validate that the config is an object
-            if (typeof config !== 'object' || Array.isArray(config) || config === null) {
-              throw new Error("Configuration must be a valid JSON object");
-            }
-
-            for (const item in config) {
-              if (!Array.isArray(config[item])) {
-                throw new Error(`Key ${item} is not valid and should be an array`);
-              }
-              config[item].forEach((val) => {
-                if (typeof val !== 'string') {
-                  throw new Error(`Values from Key ${item} should be string`);
-                }
-              });
-            }
-
-            // Additional validation could be added here based on expected structure
-            // For example, checking specific properties or types
-
-            // If valid, update the preference
-            setHasError(false);
-            setErrorMessage("");
-            return true
-          } catch (error) {
-            // Handle parsing errors
-            console.error("Invalid JSON configuration:", error);
-            setHasError(true);
-            setErrorMessage(`Invalid JSON configuration: ${error}`)
-            // You could show an error message to the user here
-            // Or reset to default/previous value
-            return false
+          // Validate that the config is an object
+          if (
+            typeof config !== "object" ||
+            Array.isArray(config) ||
+            config === null
+          ) {
+            throw new Error("配置必须是有效的 JSON 对象");
           }
+
+          for (const item in config) {
+            if (!Array.isArray(config[item])) {
+              throw new Error(`键 ${item} 无效，应该是一个数组`);
+            }
+            config[item].forEach((val) => {
+              if (typeof val !== "string") {
+                throw new Error(`键 ${item} 的值应该是字符串`);
+              }
+            });
+          }
+
+          // Additional validation could be added here based on expected structure
+          // For example, checking specific properties or types
+
+          // If valid, update the preference
+          setHasError(false);
+          setErrorMessage("");
+          return true;
+        } catch (error) {
+          // Handle parsing errors
+          console.error("Invalid JSON configuration:", error);
+          setHasError(true);
+          setErrorMessage(`无效的 JSON 配置: ${error}`);
+          // You could show an error message to the user here
+          // Or reset to default/previous value
+          return false;
+        }
       }
 
       return true;
@@ -163,7 +167,9 @@ const FormField = React.memo(
       setHasChanges(newValue !== String(initialValue));
     };
 
-    const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const handleTextareaChange = (
+      e: React.ChangeEvent<HTMLTextAreaElement>,
+    ) => {
       const newValue = e.target.value;
       setInputValue(newValue);
       validateInput(newValue);
@@ -201,7 +207,9 @@ const FormField = React.memo(
       }
     };
 
-    const handleTextareaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    const handleTextareaKeyDown = (
+      e: React.KeyboardEvent<HTMLTextAreaElement>,
+    ) => {
       // Only apply changes on Ctrl+Enter or Command+Enter for textarea
       if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
         e.preventDefault();
@@ -319,7 +327,7 @@ const FormField = React.memo(
                   : "bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/50"
               }`}
             >
-              Done
+              完成
             </button>
           )}
         </div>
@@ -327,7 +335,7 @@ const FormField = React.memo(
         {showPreview && inputValue && !hasError && (
           <div className="flex flex-col w-full mt-2.5 rounded-md bg-gray-50 dark:bg-gray-800/50 p-2.5 border border-gray-200 dark:border-gray-700">
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-              Preview{hasChanges ? " (not applied yet)" : ""}:
+              预览{hasChanges ? " (尚未应用)" : ""}:
             </p>
             <div className="flex flex-wrap gap-1.5">
               {previewExamples.map((example) => (
@@ -339,7 +347,7 @@ const FormField = React.memo(
 
             {hasChanges && (
               <p className="text-xs text-amber-500 dark:text-amber-400 mt-2 italic">
-                Press Enter or click Done to apply changes
+                按回车键或点击完成以应用更改
               </p>
             )}
           </div>

@@ -153,7 +153,7 @@ const CodePanel = (props: CodePanelProps) => {
           {selectableSettingsFiltered.length > 0 && (
             <div className="mt-1 mb-2 last:mb-0">
               <p className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                {selectedFramework} Options
+                {selectedFramework} 选项
               </p>
               {selectableSettingsFiltered.map((preference) => {
                 const isModeSelector =
@@ -216,7 +216,7 @@ const CodePanel = (props: CodePanelProps) => {
           {(stylingPreferences.length > 0 ||
             selectedFramework === "Tailwind") && (
             <SettingsGroup
-              title="Styling Options"
+              title="样式选项"
               settings={stylingPreferences}
               selectedSettings={settings}
               onPreferenceChanged={onPreferenceChanged}
@@ -264,10 +264,10 @@ const CodePanel = (props: CodePanelProps) => {
                 <button
                   onClick={() => setIsExpanded(!isExpanded)}
                   className="text-xs w-full flex justify-center py-3 text-blue-500 hover:text-blue-400 transition-colors"
-                  aria-label="Show more code. This could be slow or freeze Figma for a few seconds."
-                  title="Show more code. This could be slow or freeze Figma for a few seconds."
+                  aria-label="显示更多代码。这可能会很慢或导致 Figma 卡顿几秒钟。"
+                  title="显示更多代码。这可能会很慢或导致 Figma 卡顿几秒钟。"
                 >
-                  {isExpanded ? "Show Less" : "Show More"}
+                  {isExpanded ? "收起" : "展开更多"}
                 </button>
               </div>
             )}

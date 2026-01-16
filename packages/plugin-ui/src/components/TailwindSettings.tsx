@@ -48,7 +48,7 @@ export const TailwindSettings: React.FC<TailwindSettingsProps> = ({
   return (
     <div className="mt-2">
       <p className="text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-        Advanced Settings
+        高级设置
       </p>
 
       {/* Advanced Settings Section */}
@@ -56,25 +56,25 @@ export const TailwindSettings: React.FC<TailwindSettingsProps> = ({
         {/* Class name prefix setting */}
         <div className="mb-3">
           <FormField
-            label="Custom Class Prefix"
+            label="自定义类前缀"
             initialValue={settings.customTailwindPrefix || ""}
             onValueChange={(d) => {
               handleCustomPrefixChange(d as any);
             }}
-            placeholder="e.g., tw-"
-            helpText="Add a prefix to all generated Tailwind classes. Useful for avoiding conflicts with existing CSS. Default is empty."
+            placeholder="例如：tw-"
+            helpText="为所有生成的 Tailwind 类添加前缀。有助于避免与现有 CSS 冲突。默认为空。"
             type="text"
             showPreview={true}
           />
           <p className="text-xs text-neutral-500 mt-1">
-            Add a custom prefix to all Tailwind classes (e.g. "tw-")
+            为所有 Tailwind 类添加自定义前缀（例如 "tw-"）
           </p>
         </div>
 
         {/* Base font size setting */}
         <div className="mb-3">
           <FormField
-            label="Base Font Size"
+            label="基准字体大小"
             initialValue={settings.baseFontSize || 16}
             onValueChange={(d) => {
               handleBaseFontSizeChange(d as any);
@@ -86,14 +86,14 @@ export const TailwindSettings: React.FC<TailwindSettingsProps> = ({
             max={100}
           />
           <p className="text-xs text-neutral-500 mt-1">
-            Use this value to calculate rem values (default: 16px)
+            使用此值计算 rem 值（默认：16px）
           </p>
         </div>
 
         {/* Threshold percent setting */}
         <div className="mb-3">
           <FormField
-            label="Rounding Threshold"
+            label="取整阈值"
             initialValue={settings.thresholdPercent || 15}
             onValueChange={(d) => {
               handleThresholdPercentChange(d as any);
@@ -105,39 +105,39 @@ export const TailwindSettings: React.FC<TailwindSettingsProps> = ({
             max={50}
           />
           <p className="text-xs text-neutral-500 mt-1">
-            Maximum allowed difference when rounding values (default: 15%)
+            取整时的最大允许差异（默认：15%）
           </p>
         </div>
 
         {/* Base font family setting */}
         <div className="mb-3">
           <FormField
-            label="Base Font Family"
+            label="基准字体系列"
             initialValue={settings.baseFontFamily || ''}
             onValueChange={(d) => {
               handleBaseFontFamilyChange(String(d));
             }}
             placeholder="sans-serif"
-            helpText="Font family that won't be included in generated classes."
+            helpText="不会包含在生成类中的字体系列。"
             type="text"
           />
           <p className="text-xs text-neutral-500 mt-1">
-            {`Elements with this font won't have "font-[<value>]" class added`}
+            {`具有此字体的元素将不会添加 "font-[<value>]" 类`}
           </p>
         </div>
         <div className="mb-3">
           <FormField
             type="json"
-            label="Font Family Custom Config"
+            label="字体系列自定义配置"
             initialValue={settings.fontFamilyCustomConfig ? JSON.stringify(settings.fontFamilyCustomConfig) : ''}
             onValueChange={(d) => {
               handleFontFamilyCustomConfigChange(String(d));
             }}
-            placeholder="Your custom config"
-            helpText="Paste your tailwind custom font family config"
+            placeholder="您的自定义配置"
+            helpText="粘贴您的 Tailwind 自定义字体系列配置"
           />
           <p className="text-xs text-neutral-500 mt-1">
-            {`This allow to override the custom font handling e.g. "font-comic"`}
+            {`这允许覆盖自定义字体处理，例如 "font-comic"`}
             <pre>
               {`{
   "sans":["Arial","verdana"],

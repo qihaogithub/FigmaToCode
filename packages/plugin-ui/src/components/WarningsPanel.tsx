@@ -56,18 +56,18 @@ const WarningsPanel: React.FC<WarningsPanelProps> = ({ warnings }) => {
           </div>
           <div className="flex items-center gap-2">
             <h3 className="font-medium text-amber-900 dark:text-amber-200 text-sm">
-              {warnings.length} {warnings.length === 1 ? "Warning" : "Warnings"}
+              {warnings.length} {warnings.length === 1 ? "警告" : "警告"}
             </h3>
             {critical.length > 0 && (
               <span className="px-1.5 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-full text-xs">
-                {critical.length} critical
+                {critical.length} 严重
               </span>
             )}
           </div>
         </div>
         <button
           className="p-1 hover:bg-amber-200/70 dark:hover:bg-amber-800/50 rounded-sm text-amber-700 dark:text-amber-300 transition-colors"
-          aria-label={isCollapsed ? "Expand warnings" : "Collapse warnings"}
+          aria-label={isCollapsed ? "展开警告" : "折叠警告"}
         >
           {isCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
         </button>
@@ -87,7 +87,7 @@ const WarningsPanel: React.FC<WarningsPanelProps> = ({ warnings }) => {
                 }`}
                 onClick={() => setActiveTab("all")}
               >
-                All ({warnings.length})
+                全部 ({warnings.length})
               </button>
               <button
                 className={`px-2 py-1 text-xs font-medium rounded transition-colors flex-1 flex items-center justify-center gap-1 ${
@@ -98,7 +98,7 @@ const WarningsPanel: React.FC<WarningsPanelProps> = ({ warnings }) => {
                 onClick={() => setActiveTab("critical")}
               >
                 <AlertOctagon size={12} />
-                <span>Critical ({critical.length})</span>
+                <span>严重 ({critical.length})</span>
               </button>
               <button
                 className={`px-2 py-1 text-xs font-medium rounded transition-colors flex-1 flex items-center justify-center gap-1 ${
@@ -109,7 +109,7 @@ const WarningsPanel: React.FC<WarningsPanelProps> = ({ warnings }) => {
                 onClick={() => setActiveTab("standard")}
               >
                 <Info size={12} />
-                <span>Other ({standard.length})</span>
+                <span>其他 ({standard.length})</span>
               </button>
             </div>
           )}
@@ -157,7 +157,7 @@ const WarningsPanel: React.FC<WarningsPanelProps> = ({ warnings }) => {
                       {/* Suggested fix - balanced size */}
                       {isCritical && (
                         <div className="mt-1 bg-white/70 dark:bg-black/20 rounded-sm py-1 px-2 text-neutral-600 dark:text-neutral-400 border-l border-red-300 dark:border-red-500 text-xs">
-                          <span className="font-medium">Tip: </span>
+                          <span className="font-medium">提示：</span>
                           {suggestFixForWarning(message.toString())}
                         </div>
                       )}
@@ -186,8 +186,7 @@ const WarningsPanel: React.FC<WarningsPanelProps> = ({ warnings }) => {
             <div className="mt-2 py-1 px-1 text-xs text-neutral-500 dark:text-neutral-400 bg-neutral-50 dark:bg-neutral-800/50 rounded-sm border-neutral-200 dark:border-neutral-700 flex items-center gap-1.5">
               {/* <Info size={10} className="shrink-0" /> */}
               <span>
-                Addressing warnings can improve the quality of the generated
-                code.
+                解决警告可以提高生成代码的质量。
               </span>
             </div>
           )}
@@ -200,12 +199,12 @@ const WarningsPanel: React.FC<WarningsPanelProps> = ({ warnings }) => {
 // Helper functions (these would be expanded with actual logic in your implementation)
 const suggestFixForWarning = (warning: string): string => {
   if (warning.toLowerCase().includes("missing")) {
-    return "Add the required properties to your component or select a parent element that includes all necessary children.";
+    return "向组件添加所需的属性，或选择包含所有必要子元素的父元素。";
   }
   if (warning.toLowerCase().includes("unsupported")) {
-    return "Consider using a different element type or simplifying the design for better conversion results.";
+    return "考虑使用不同的元素类型或简化设计以获得更好的转换结果。";
   }
-  return "Check your design elements and ensure they follow the recommended structure for code conversion.";
+  return "检查您的设计元素，并确保它们遵循代码转换的推荐结构。";
 };
 
 const shouldShowActionButtons = (warning: string): boolean => {

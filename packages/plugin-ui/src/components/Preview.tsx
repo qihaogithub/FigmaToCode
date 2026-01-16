@@ -53,8 +53,8 @@ const Preview: React.FC<{
         <button
           onClick={() => setBgColor(bgColor === "white" ? "black" : "white")}
           className="p-1.5 rounded-sm hover:bg-muted text-muted-foreground transition-colors"
-          aria-label={`Switch to ${bgColor === "white" ? "black" : "white"} background`}
-          title={`Switch to ${bgColor === "white" ? "black" : "white"} background`}
+          aria-label={`切换到${bgColor === "white" ? "黑色" : "白色"}背景`}
+          title={`切换到${bgColor === "white" ? "黑色" : "白色"}背景`}
         >
           <Circle size={14} fill={bgColor} className="stroke-current" />
         </button>

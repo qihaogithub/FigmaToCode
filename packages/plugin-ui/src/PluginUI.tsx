@@ -51,7 +51,7 @@ export const PluginUI = (props: PluginUIProps) => {
             }`}
             onClick={() => setActiveTab("preview")}
           >
-            Preview
+            预览
           </button>
           <button
             className={`flex-1 h-8 flex items-center justify-center rounded-md text-sm font-medium transition-colors ${
@@ -61,7 +61,7 @@ export const PluginUI = (props: PluginUIProps) => {
             }`}
             onClick={() => setActiveTab("code")}
           >
-            Code
+            代码
           </button>
           <button
             className={`w-8 h-8 flex items-center justify-center rounded-md text-sm font-medium ${
@@ -70,7 +70,7 @@ export const PluginUI = (props: PluginUIProps) => {
                 : "bg-muted hover:bg-primary/90 hover:text-primary-foreground"
             }`}
             onClick={() => setActiveTab("about")}
-            aria-label="About"
+            aria-label="关于"
           >
             <InfoIcon size={16} />
           </button>
@@ -94,7 +94,7 @@ export const PluginUI = (props: PluginUIProps) => {
               />
             ) : (
               <div className="text-center text-muted-foreground">
-                <p>No preview available</p>
+                <p>暂无预览</p>
               </div>
             )}
           </div>
@@ -114,7 +114,7 @@ export const PluginUI = (props: PluginUIProps) => {
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center px-4 py-8 text-center text-muted-foreground">
-            <p>About 页面暂未实现</p>
+            <p>关于页面暂未实现</p>
           </div>
         )}
       </div>

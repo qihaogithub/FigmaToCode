@@ -37,10 +37,10 @@ const Loading = (_props: LoadingProps) => (
       
       {/* Text */}
       <h2 className="text-xl font-semibold mb-2 text-center">
-        Converting Design
+        正在转换设计
       </h2>
       <p className="text-sm text-neutral-500 dark:text-neutral-400 text-center max-w-xs">
-        Please wait while your design is being converted to code. This may take a moment for complex designs.
+        请稍候，正在将您的设计转换为代码。复杂的设计可能需要一些时间。
       </p>
       
       {/* Progress bar */}

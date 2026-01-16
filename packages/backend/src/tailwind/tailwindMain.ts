@@ -77,7 +77,7 @@ const convertNode =
         return tailwindSection(node, settings, options);
       case "VECTOR":
         if (!settings.embedVectors) {
-          addWarning("Vector is not supported");
+          addWarning("不支持矢量图");
         }
         return tailwindContainer(
           { ...node, type: "RECTANGLE" } as any,
@@ -87,7 +87,7 @@ const convertNode =
           options,
         );
       default:
-        addWarning(`${node.type} node is not supported`);
+        addWarning(`不支持 ${node.type} 类型的节点`);
     }
     return "";
   };
@@ -265,7 +265,7 @@ export const tailwindContainer = async (
         }
       }
     } else {
-      addWarning("Image fills are replaced with placeholders");
+      addWarning("图像填充被占位符替换");
       const imageURL = getPlaceholderImage(node.width, node.height);
 
       if (!("children" in node) || node.children.length === 0) {

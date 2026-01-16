@@ -80,7 +80,7 @@ export function CopyButton({
       </div>
 
       {showLabel && (
-        <span className="font-medium">{isCopied ? "Copied" : "Copy"}</span>
+        <span className="font-medium">{isCopied ? "已复制" : "复制"}</span>
       )}
 
       {isCopied && (

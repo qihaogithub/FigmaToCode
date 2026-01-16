@@ -27,10 +27,10 @@ const EmptyState = () => {
 
       {/* Title and hint */}
       <h3 className="text-lg font-medium text-neutral-800 dark:text-neutral-200 mb-2">
-        No Layer Selected
+        未选择图层
       </h3>
       <p className="text-neutral-500 dark:text-neutral-400 max-w-xs mb-8">
-        Select a layer from your Figma design to view the generated code.
+        请在 Figma 中选择一个图层以查看生成的代码。
       </p>
 
       {/* Completely redesigned steps section */}
@@ -51,10 +51,10 @@ const EmptyState = () => {
               </div>
               <div className="mt-3 text-center">
                 <div className="font-medium text-sm text-green-600 dark:text-green-500">
-                  Select
+                  选择
                 </div>
                 <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-                  Choose a layer
+                  选择图层
                 </p>
               </div>
             </li>
@@ -66,10 +66,10 @@ const EmptyState = () => {
               </div>
               <div className="mt-3 text-center">
                 <div className="font-medium text-sm text-neutral-600 dark:text-neutral-400">
-                  View
+                  查看
                 </div>
                 <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-                  See the code
+                  查看代码
                 </p>
               </div>
             </li>
@@ -81,10 +81,10 @@ const EmptyState = () => {
               </div>
               <div className="mt-3 text-center">
                 <div className="font-medium text-sm text-neutral-600 dark:text-neutral-400">
-                  Copy
+                  复制
                 </div>
                 <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-                  Use anywhere
+                  随处使用
                 </p>
               </div>
             </li>
