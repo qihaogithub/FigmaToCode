@@ -21,7 +21,7 @@ interface CodePanelProps {
   selectPreferenceOptions: SelectPreferenceOptions[];
   onPreferenceChanged: (
     _key: keyof PluginSettings,
-    _value: boolean | string | number,
+    _value: boolean | string | number | Record<string, string[]>,
   ) => void;
 }
 
@@ -136,30 +136,7 @@ const CodePanel = (props: CodePanelProps) => {
 
   return (
     <div className="w-full flex flex-col gap-2 mt-2">
-      <div className="flex items-center justify-between w-full gap-1">
-        <div className="flex gap-1 bg-muted dark:bg-card rounded-lg p-1 flex-1">
-          {frameworks.map((framework) => (
-            <button
-              key={framework}
-              className={`flex-1 h-8 flex items-center justify-center rounded-md text-sm font-medium transition-colors ${
-                selectedFramework === framework
-                  ? "bg-primary text-primary-foreground shadow-xs"
-                  : "bg-muted hover:bg-primary/90 hover:text-primary-foreground"
-              }`}
-              onClick={() => props.setSelectedFramework(framework)}
-            >
-              {framework}
-            </button>
-          ))}
-        </div>
-        {!isCodeEmpty && (
-          <CopyButton
-            value={prefixedCode}
-            onMouseEnter={handleButtonHover}
-            onMouseLeave={handleButtonLeave}
-          />
-        )}
-      </div>
+      {/* Framework selector removed as requested */}
 
       {!isCodeEmpty && (
         <div className="flex flex-col p-3 bg-card border rounded-lg text-sm">
@@ -179,21 +156,31 @@ const CodePanel = (props: CodePanelProps) => {
                 {selectedFramework} Options
               </p>
               {selectableSettingsFiltered.map((preference) => {
-                // Regular toggle buttons for other options
-                return (
-                  <div className="flex gap-1 bg-muted dark:bg-card rounded-lg p-1">
+                const isModeSelector =
+                  preference.propertyName === "tailwindGenerationMode";
+
+                const buttons = (
+                  <div
+                    className={`flex gap-1 bg-muted dark:bg-card rounded-lg p-1 ${
+                      isModeSelector ? "flex-1" : ""
+                    }`}
+                  >
                     {preference.options.map((option) => (
                       <button
                         key={option.value}
                         className={`flex-1 h-8 flex items-center justify-center rounded-md text-sm font-medium transition-colors ${
                           ((settings?.[preference.propertyName] ??
-                            preference.options.find((o) => o.isDefault)?.value ??
+                            preference.options.find((o) => o.isDefault)
+                              ?.value ??
                             "") as string) === option.value
                             ? "bg-primary text-primary-foreground shadow-xs"
                             : "bg-muted hover:bg-primary/90 hover:text-primary-foreground"
                         }`}
                         onClick={() => {
-                          onPreferenceChanged(preference.propertyName, option.value);
+                          onPreferenceChanged(
+                            preference.propertyName,
+                            option.value,
+                          );
                         }}
                       >
                         {option.label}
@@ -201,6 +188,26 @@ const CodePanel = (props: CodePanelProps) => {
                     ))}
                   </div>
                 );
+
+                if (isModeSelector) {
+                  return (
+                    <div
+                      key={preference.propertyName}
+                      className="flex items-center justify-between w-full gap-1"
+                    >
+                      {buttons}
+                      {!isCodeEmpty && (
+                        <CopyButton
+                          value={prefixedCode}
+                          onMouseEnter={handleButtonHover}
+                          onMouseLeave={handleButtonLeave}
+                        />
+                      )}
+                    </div>
+                  );
+                }
+
+                return <div key={preference.propertyName}>{buttons}</div>;
               })}
             </div>
           )}

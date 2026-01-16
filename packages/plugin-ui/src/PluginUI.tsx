@@ -30,7 +30,7 @@ type PluginUIProps = {
   settings: PluginSettings | null;
   onPreferenceChanged: (
     _key: keyof PluginSettings,
-    _value: boolean | string | number,
+    _value: boolean | string | number | Record<string, string[]>,
   ) => void;
   colors: SolidColorConversion[];
   gradients: LinearGradientConversion[];

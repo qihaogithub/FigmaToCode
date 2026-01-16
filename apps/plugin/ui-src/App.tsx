@@ -138,7 +138,7 @@ export default function App() {
   };
   const handlePreferencesChange = (
     key: keyof PluginSettings,
-    value: boolean | string | number,
+    value: boolean | string | number | Record<string, string[]>,
   ) => {
     if (state.settings && state.settings[key] === value) {
       // do nothing
