@@ -37,8 +37,6 @@ export default function Web() {
                 htmlPreview={null}
                 settings={undefined}
                 onPreferenceChanged={() => {}}
-                colors={[]}
-                gradients={[]}
                 warnings={testWarnings}
               />
             </div>
@@ -60,8 +58,6 @@ export default function Web() {
                 htmlPreview={null}
                 settings={undefined}
                 onPreferenceChanged={() => {}}
-                colors={[]}
-                gradients={[]}
                 warnings={testWarnings}
               />
             </div>

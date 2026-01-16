@@ -1,8 +1,4 @@
 import {
-  retrieveGenericLinearGradients,
-  retrieveGenericSolidUIColors,
-} from "./common/retrieveUI/retrieveColors";
-import {
   addWarning,
   clearWarnings,
   warnings,
@@ -88,12 +84,6 @@ export const run = async (settings: PluginSettings) => {
     htmlPreview.content.slice(0, 200),
   );
 
-  const colorPanelStart = Date.now();
-  const colors = await retrieveGenericSolidUIColors(framework);
-  const gradients = await retrieveGenericLinearGradients(framework);
-  console.log(
-    `[benchmark] color and gradient panel: ${Date.now() - colorPanelStart}ms`,
-  );
   console.log(
     `[benchmark] total generation time: ${Date.now() - nodeToJSONStart}ms`,
   );
@@ -120,8 +110,6 @@ export const run = async (settings: PluginSettings) => {
   postConversionComplete({
     code,
     htmlPreview,
-    colors,
-    gradients,
     settings,
     warnings: [...warnings],
   });

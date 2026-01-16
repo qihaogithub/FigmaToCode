@@ -6,8 +6,6 @@ import {
   ConversionMessage,
   Message,
   HTMLPreview,
-  LinearGradientConversion,
-  SolidColorConversion,
   ErrorMessage,
   SettingsChangedMessage,
   Warning,
@@ -21,8 +19,6 @@ interface AppState {
   isLoading: boolean;
   htmlPreview: HTMLPreview;
   settings: PluginSettings | null;
-  colors: SolidColorConversion[];
-  gradients: LinearGradientConversion[];
   warnings: Warning[];
 }
 
@@ -35,8 +31,6 @@ export default function App() {
     isLoading: false,
     htmlPreview: emptyPreview,
     settings: null,
-    colors: [],
-    gradients: [],
     warnings: [],
   });
 
@@ -91,8 +85,6 @@ export default function App() {
             code: "",
             htmlPreview: emptyPreview,
             warnings: [],
-            colors: [],
-            gradients: [],
             isLoading: false,
           }));
           break;
@@ -102,8 +94,6 @@ export default function App() {
 
           setState((prevState) => ({
             ...prevState,
-            colors: [],
-            gradients: [],
             code: `Error :(\n// ${errorMessage.error}`,
             isLoading: false,
           }));
@@ -160,8 +150,6 @@ export default function App() {
         onPreferenceChanged={handlePreferencesChange}
         htmlPreview={state.htmlPreview}
         settings={state.settings}
-        colors={state.colors}
-        gradients={state.gradients}
       />
     </div>
   );

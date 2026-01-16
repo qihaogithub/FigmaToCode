@@ -41,8 +41,6 @@ export interface ConversionData {
   code: string;
   settings: PluginSettings;
   htmlPreview: HTMLPreview;
-  colors: SolidColorConversion[];
-  gradients: LinearGradientConversion[];
   warnings: Warning[];
 }
 

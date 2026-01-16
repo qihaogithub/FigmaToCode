@@ -1,17 +1,7 @@
-import copy from "copy-to-clipboard";
 import Preview from "./components/Preview";
-import GradientsPanel from "./components/GradientsPanel";
-import ColorsPanel from "./components/ColorsPanel";
 import CodePanel from "./components/CodePanel";
 import WarningsPanel from "./components/WarningsPanel";
-import {
-  Framework,
-  HTMLPreview,
-  LinearGradientConversion,
-  PluginSettings,
-  SolidColorConversion,
-  Warning,
-} from "types";
+import { Framework, HTMLPreview, PluginSettings, Warning } from "types";
 import {
   preferenceOptions,
   selectPreferenceOptions,
@@ -32,8 +22,6 @@ type PluginUIProps = {
     _key: keyof PluginSettings,
     _value: boolean | string | number | Record<string, string[]>,
   ) => void;
-  colors: SolidColorConversion[];
-  gradients: LinearGradientConversion[];
   isLoading: boolean;
 };
 
@@ -123,24 +111,6 @@ export const PluginUI = (props: PluginUIProps) => {
               settings={props.settings}
               onPreferenceChanged={props.onPreferenceChanged}
             />
-
-            {props.colors.length > 0 && (
-              <ColorsPanel
-                colors={props.colors}
-                onColorClick={(value) => {
-                  copy(value);
-                }}
-              />
-            )}
-
-            {props.gradients.length > 0 && (
-              <GradientsPanel
-                gradients={props.gradients}
-                onColorClick={(value) => {
-                  copy(value);
-                }}
-              />
-            )}
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center px-4 py-8 text-center text-muted-foreground">
