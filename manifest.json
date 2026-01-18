@@ -9,7 +9,9 @@
   "permissions": [],
   "documentAccess": "dynamic-page",
   "networkAccess": {
-    "allowedDomains": ["none"]
+    "allowedDomains": [
+      "https://r2-asset-worker.qihaogo.workers.dev"
+    ]
   },
   "codegenLanguages": [
     { "label": "Tailwind", "value": "tailwind" },

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, Loader2 } from "lucide-react";
 import copy from "copy-to-clipboard";
 import { cn } from "../lib/utils";
 
@@ -12,6 +12,7 @@ interface CopyButtonProps {
   successDuration?: number;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
+  onCopyRequest?: () => Promise<string | void>;
 }
 
 export function CopyButton({
@@ -21,8 +22,10 @@ export function CopyButton({
   successDuration = 750,
   onMouseEnter,
   onMouseLeave,
+  onCopyRequest,
 }: CopyButtonProps) {
   const [isCopied, setIsCopied] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (isCopied) {
@@ -36,10 +39,26 @@ export function CopyButton({
 
   const handleCopy = async () => {
     try {
-      copy(value);
+      if (onCopyRequest) {
+        setIsLoading(true);
+        const result = await onCopyRequest();
+        setIsLoading(false);
+        if (typeof result === "string") {
+          copy(result);
+        } else {
+           // If void, maybe copyRequest handled copy or just updated the value prop?
+           // Assuming if string is returned, copy it.
+           // If nothing returned, use the current value prop which might have been updated?
+           // The safest is to use the returned value.
+           copy(value);
+        }
+      } else {
+        copy(value);
+      }
       setIsCopied(true);
     } catch (error) {
       console.error("Failed to copy text: ", error);
+      setIsLoading(false);
     }
   };
 
@@ -48,6 +67,7 @@ export function CopyButton({
       onClick={handleCopy}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
+      disabled={isLoading}
       className={cn(
         `inline-flex items-center justify-center px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-300`,
         isCopied
@@ -55,13 +75,14 @@ export function CopyButton({
           : "bg-neutral-100 dark:bg-neutral-700 dark:hover:bg-muted-foreground/30 text-foreground",
         className,
         `relative`,
+        isLoading && "cursor-wait opacity-70"
       )}
       aria-label={isCopied ? "Copied!" : "Copy to clipboard"}
     >
       <div className="relative h-4 w-4 mr-1.5">
         <span
           className={`absolute inset-0 transition-all duration-200 ${
-            isCopied
+            isCopied || isLoading
               ? "opacity-0 scale-75 rotate-[-10deg]"
               : "opacity-100 scale-100 rotate-0"
           }`}
@@ -70,17 +91,28 @@ export function CopyButton({
         </span>
         <span
           className={`absolute inset-0 transition-all duration-200 ${
-            isCopied
+            isCopied && !isLoading
               ? "opacity-100 scale-100 rotate-0"
               : "opacity-0 scale-75 rotate-[10deg]"
           }`}
         >
           <Check className="h-4 w-4 text-primary-foreground" />
         </span>
+        <span
+          className={`absolute inset-0 transition-all duration-200 ${
+            isLoading
+              ? "opacity-100 scale-100 rotate-0"
+              : "opacity-0 scale-75 rotate-[10deg]"
+          }`}
+        >
+          <Loader2 className="h-4 w-4 animate-spin text-foreground" />
+        </span>
       </div>
 
       {showLabel && (
-        <span className="font-medium">{isCopied ? "已复制" : "复制"}</span>
+        <span className="font-medium">
+          {isLoading ? "生成中..." : isCopied ? "已复制" : "复制"}
+        </span>
       )}
 
       {isCopied && (

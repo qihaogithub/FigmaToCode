@@ -5,9 +5,10 @@ import { htmlMain } from "../../html/htmlMain";
 export const convertToCode = async (
   nodes: SceneNode[],
   settings: PluginSettings,
+  options?: { isPreview?: boolean }
 ) => {
   if (settings.framework === "HTML") {
     return (await htmlMain(nodes, settings)).html;
   }
-  return await tailwindMain(nodes, settings);
+  return await tailwindMain(nodes, settings, options);
 };

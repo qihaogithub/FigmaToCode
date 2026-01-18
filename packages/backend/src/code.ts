@@ -19,7 +19,7 @@ import {
   resetPerformanceCounters,
 } from "./altNodes/jsonNodeConversion";
 
-export const run = async (settings: PluginSettings) => {
+export const run = async (settings: PluginSettings, options: { isPreview?: boolean; triggerType?: string } = {}) => {
   resetPerformanceCounters();
   clearWarnings();
 
@@ -69,7 +69,7 @@ export const run = async (settings: PluginSettings) => {
   }
 
   const convertToCodeStart = Date.now();
-  const code = await convertToCode(convertedSelection, settings);
+  const code = await convertToCode(convertedSelection, settings, options);
   console.log(
     `[benchmark] convertToCode: ${Date.now() - convertToCodeStart}ms`,
   );
@@ -109,6 +109,7 @@ export const run = async (settings: PluginSettings) => {
 
   postConversionComplete({
     code,
+    triggerType: options.triggerType,
     htmlPreview,
     settings,
     warnings: [...warnings],

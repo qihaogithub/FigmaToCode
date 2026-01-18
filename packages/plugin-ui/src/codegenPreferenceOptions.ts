@@ -61,6 +61,14 @@ export const preferenceOptions: LocalCodegenPreferenceOptions[] = [
     isDefault: false,
     includedLanguages: ["Tailwind"],
   },
+  {
+    itemType: "individual_select",
+    propertyName: "enableAssetUpload",
+    label: "自动上传图片",
+    description: "自动将图片和矢量图上传到云端并生成链接（替换占位符）。",
+    isDefault: false,
+    includedLanguages: ["Tailwind"],
+  },
 ];
 
 export const selectPreferenceOptions: SelectPreferenceOptions[] = [

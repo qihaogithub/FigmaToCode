@@ -23,6 +23,7 @@ interface CodePanelProps {
     _key: keyof PluginSettings,
     _value: boolean | string | number | Record<string, string[]>,
   ) => void;
+  onCopyRequest?: () => Promise<string>;
 }
 
 const frameworks: Framework[] = ["Tailwind"];
@@ -118,6 +119,7 @@ const CodePanel = (props: CodePanelProps) => {
       "showLayerNames",
       "embedImages",
       "embedVectors",
+      "enableAssetUpload",
     ];
 
     // Group preferences by category
@@ -201,6 +203,7 @@ const CodePanel = (props: CodePanelProps) => {
                           value={prefixedCode}
                           onMouseEnter={handleButtonHover}
                           onMouseLeave={handleButtonLeave}
+                          onCopyRequest={props.onCopyRequest}
                         />
                       )}
                     </div>

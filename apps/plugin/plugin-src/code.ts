@@ -23,6 +23,13 @@ export const defaultPluginSettings: PluginSettings = {
   thresholdPercent: 15,
   baseFontFamily: "",
   fontFamilyCustomConfig: {},
+  // Asset Upload Settings
+  enableAssetUpload: false,
+  uploadEndpoint: "",
+  cacheTTLHours: 24,
+  maxConcurrentUploads: 5,
+  bitmapStrategy: "upload",
+  vectorStrategy: "upload",
 };
 
 // A helper type guard to ensure the key belongs to the PluginSettings type
@@ -32,8 +39,15 @@ function isKeyOfPluginSettings(key: string): key is keyof PluginSettings {
 
 const getUserSettings = async () => {
   console.log("[DEBUG] getUserSettings - Starting to fetch user settings");
-  const possiblePluginSrcSettings =
-    (await figma.clientStorage.getAsync("userPluginSettings")) ?? {};
+  
+  let possiblePluginSrcSettings = {};
+  try {
+    possiblePluginSrcSettings = (await figma.clientStorage.getAsync("userPluginSettings")) ?? {};
+  } catch (err) {
+    console.error("[DEBUG] getUserSettings - Failed to get clientStorage:", err);
+    // 即使失败也继续使用空对象，避免阻塞
+  }
+
   console.log(
     "[DEBUG] getUserSettings - Raw settings from storage:",
     possiblePluginSrcSettings,
@@ -42,6 +56,12 @@ const getUserSettings = async () => {
   const updatedPluginSrcSettings = {
     ...defaultPluginSettings,
     ...Object.keys(defaultPluginSettings).reduce((validSettings, key) => {
+      // 这里的检查逻辑有问题，如果 defaultPluginSettings 中有新字段，而 storage 中没有
+      // 且 storage 中的值类型 undefined (不存在)，那么 reduce 不会覆盖 default 值
+      // 但是，之前的逻辑是：如果 key 存在于 storage 中 且 类型匹配，才覆盖。
+      // 所以默认值应该被保留。
+      
+      // 让我们仔细检查 isKeyOfPluginSettings(key)
       if (
         isKeyOfPluginSettings(key) &&
         key in possiblePluginSrcSettings &&
@@ -59,6 +79,14 @@ const getUserSettings = async () => {
     (updatedPluginSrcSettings as any).framework = "Tailwind";
   }
 
+  // 强制确保 enableAssetUpload 的类型正确 (boolean)
+  // 并且如果是 undefined (可能因为某种原因未正确合并)，则使用默认值
+  if (updatedPluginSrcSettings.enableAssetUpload === undefined) {
+     updatedPluginSrcSettings.enableAssetUpload = defaultPluginSettings.enableAssetUpload;
+  }
+  
+  console.log("[DEBUG] enableAssetUpload value:", (updatedPluginSrcSettings as any).enableAssetUpload);
+
   userPluginSettings = updatedPluginSrcSettings as PluginSettings;
   console.log("[DEBUG] getUserSettings - Final settings:", userPluginSettings);
   return userPluginSettings;
@@ -69,12 +97,12 @@ const initSettings = async () => {
   await getUserSettings();
   postSettingsChanged(userPluginSettings);
   console.log("[DEBUG] initSettings - Calling safeRun with settings");
-  safeRun(userPluginSettings);
+  safeRun(userPluginSettings, { isPreview: true, triggerType: "init" });
 };
 
 // Used to prevent running from happening again.
 let isLoading = false;
-const safeRun = async (settings: PluginSettings) => {
+const safeRun = async (settings: PluginSettings, options: { isPreview?: boolean; triggerType?: string } = {}) => {
   console.log(
     "[DEBUG] safeRun - Called with isLoading =",
     isLoading,
@@ -85,7 +113,7 @@ const safeRun = async (settings: PluginSettings) => {
     try {
       isLoading = true;
       console.log("[DEBUG] safeRun - Starting run execution");
-      await run(settings);
+      await run(settings, options);
       console.log("[DEBUG] safeRun - Run execution completed");
       // hack to make it not immediately set to false when complete. (executes on next frame)
       setTimeout(() => {
@@ -131,7 +159,7 @@ const standardMode = async () => {
       "[DEBUG] selectionchange event - New selection:",
       figma.currentPage.selection,
     );
-    safeRun(userPluginSettings);
+    safeRun(userPluginSettings, { isPreview: true, triggerType: "selection" });
   });
 
   // Listen for page changes
@@ -142,7 +170,7 @@ const standardMode = async () => {
     // The reason for this is that the code will temporarily hide the children of the group in order to export a clean image
     // then restores the visibility of the children. This constitutes a document change so it's restarting the whole conversion.
     // In order to stop this, we disable safeRun() when doing conversions (while isLoading === true).
-    safeRun(userPluginSettings);
+    safeRun(userPluginSettings, { isPreview: true, triggerType: "document" });
   });
 
   figma.ui.onmessage = async (msg) => {
@@ -153,7 +181,10 @@ const standardMode = async () => {
       console.log(`[DEBUG] Setting changed: ${key} = ${value}`);
       (userPluginSettings as any)[key] = value;
       figma.clientStorage.setAsync("userPluginSettings", userPluginSettings);
-      safeRun(userPluginSettings);
+      safeRun(userPluginSettings, { isPreview: true, triggerType: "setting" });
+    } else if (msg.type === "copy-code-request") {
+      console.log("[DEBUG] copy-code-request message received");
+      safeRun(userPluginSettings, { isPreview: false, triggerType: "copy" });
     } else if (msg.type === "get-selection-json") {
       console.log("[DEBUG] get-selection-json message received");
 

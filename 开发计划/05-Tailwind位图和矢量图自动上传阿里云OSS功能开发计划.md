@@ -228,7 +228,7 @@ interface AssetUploadSettings {
 
 ### 第一阶段：准备 Cloudflare Worker + R2（0.5 天）
 
-- [ ] 创建 R2 bucket（例如 `figma-assets`）
+- [x] 创建 R2 bucket（例如 `figma-assets`）
 - [ ] 创建 Worker，并绑定 R2
 - [ ] 配置 Worker 环境变量：
   - `UPLOAD_SECRET`

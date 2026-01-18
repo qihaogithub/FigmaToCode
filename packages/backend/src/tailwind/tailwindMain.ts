@@ -2,7 +2,7 @@ import { retrieveTopFill } from "../common/retrieveFill";
 import { indentString } from "../common/indentString";
 import { addWarning } from "../common/commonConversionWarnings";
 import { getVisibleNodes } from "../common/nodeVisibility";
-import { getPlaceholderImage, exportNodeAsBase64PNG } from "../common/images";
+import { getPlaceholderImage, exportNodeAsBase64PNG, exportNodeAsBytes, getOrUploadAsset } from "../common/images";
 import { TailwindTextBuilder } from "./tailwindTextBuilder";
 import { TailwindDefaultBuilder } from "./tailwindDefaultBuilder";
 import { tailwindAutoLayoutProps } from "./builderImpl/tailwindAutoLayout";
@@ -76,6 +76,31 @@ const convertNode =
       case "SECTION":
         return tailwindSection(node, settings, options);
       case "VECTOR":
+        if (settings.enableAssetUpload && !options?.isPreview) {
+          console.log("[Tailwind] Attempting to upload VECTOR asset...");
+          const bytes = await exportNodeAsBytes(node, "SVG");
+          if (bytes) {
+            const url = await getOrUploadAsset(bytes, "svg", settings);
+            if (url) {
+              console.log("[Tailwind] VECTOR asset uploaded:", url);
+              const builder = new TailwindDefaultBuilder(node, settings)
+                .position()
+                .size()
+                .blend();
+
+              const tag = "img";
+              const build = builder.build();
+              const src = ` src="${url}"`;
+              return `\n<${tag}${build}${src} />`;
+            } else {
+              console.warn("[Tailwind] VECTOR asset upload failed (url is null)");
+            }
+          } else {
+            console.warn("[Tailwind] Failed to export VECTOR as bytes");
+          }
+          addWarning("矢量图自动上传失败");
+        }
+
         if (!settings.embedVectors) {
           addWarning("不支持矢量图");
         }
@@ -265,8 +290,32 @@ export const tailwindContainer = async (
         }
       }
     } else {
-      addWarning("图像填充被占位符替换");
-      const imageURL = getPlaceholderImage(node.width, node.height);
+      let imageURL = "";
+
+      // Try Auto Upload
+      if (settings.enableAssetUpload && !options?.isPreview) {
+        console.log("[Tailwind] Attempting to upload IMAGE asset...");
+        const bytes = await exportNodeAsBytes(node, "PNG");
+        if (bytes) {
+          const url = await getOrUploadAsset(bytes, "png", settings);
+          if (url) {
+            console.log("[Tailwind] IMAGE asset uploaded:", url);
+            imageURL = url;
+          } else {
+             console.warn("[Tailwind] IMAGE asset upload failed (url is null)");
+          }
+        } else {
+           console.warn("[Tailwind] Failed to export IMAGE as bytes");
+        }
+      } else {
+        if (!settings.enableAssetUpload) console.log("[Tailwind] Asset upload disabled");
+        if (options?.isPreview) console.log("[Tailwind] Skipping upload in preview mode");
+      }
+
+      if (!imageURL) {
+        addWarning("图像填充被占位符替换");
+        imageURL = getPlaceholderImage(node.width, node.height);
+      }
 
       if (!("children" in node) || node.children.length === 0) {
         tag = "img";

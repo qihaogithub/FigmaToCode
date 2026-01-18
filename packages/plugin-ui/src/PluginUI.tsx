@@ -23,6 +23,7 @@ type PluginUIProps = {
     _value: boolean | string | number | Record<string, string[]>,
   ) => void;
   isLoading: boolean;
+  onCopyRequest?: () => Promise<string>;
 };
 
 export const PluginUI = (props: PluginUIProps) => {
@@ -110,6 +111,7 @@ export const PluginUI = (props: PluginUIProps) => {
               selectPreferenceOptions={selectPreferenceOptions}
               settings={props.settings}
               onPreferenceChanged={props.onPreferenceChanged}
+              onCopyRequest={props.onCopyRequest}
             />
           </div>
         ) : (

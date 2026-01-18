@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { PluginUI } from "plugin-ui";
 import {
   Framework,
@@ -34,6 +34,8 @@ export default function App() {
     warnings: [],
   });
 
+  const copyResolver = useRef<((code: string) => void) | null>(null);
+
   const rootStyles = getComputedStyle(document.documentElement);
   const figmaColorBgValue = rootStyles
     .getPropertyValue("--figma-color-bg")
@@ -61,12 +63,24 @@ export default function App() {
 
         case "code":
           const conversionMessage = pluginMessage as ConversionMessage;
-          setState((prevState) => ({
-            ...prevState,
-            ...conversionMessage,
-            selectedFramework: conversionMessage.settings.framework,
-            isLoading: false,
-          }));
+          
+          if (conversionMessage.triggerType === "copy" && copyResolver.current) {
+            copyResolver.current(conversionMessage.code);
+            copyResolver.current = null;
+            // 重要修复：复制完成后必须重置 loading 状态
+            setState((prevState) => ({
+              ...prevState,
+              isLoading: false,
+            }));
+          } else {
+             // Normal selection update or other updates
+             setState((prevState) => ({
+              ...prevState,
+              ...conversionMessage,
+              selectedFramework: conversionMessage.settings.framework,
+              isLoading: false,
+            }));
+          }
           break;
 
         case "pluginSettingChanged":
@@ -91,6 +105,13 @@ export default function App() {
 
         case "error":
           const errorMessage = pluginMessage as ErrorMessage;
+          // 如果有正在进行的复制请求，需要结束 loading
+          if (copyResolver.current) {
+            // 可以 resolve 一个空字符串或者抛出错误，取决于 CopyButton 如何处理
+            // 这里我们 resolve 空字符串，并在 UI 上显示错误
+            copyResolver.current("");
+            copyResolver.current = null;
+          }
 
           setState((prevState) => ({
             ...prevState,
@@ -104,7 +125,19 @@ export default function App() {
           copy(JSON.stringify(json, null, 2));
           break;
 
-        default:
+        case "conversion-complete":
+          // 有些情况下可能会发送 conversion-complete 但 success=false
+          const completeMsg = pluginMessage as any;
+          if (!completeMsg.success) {
+            if (copyResolver.current) {
+              copyResolver.current("");
+              copyResolver.current = null;
+            }
+            setState((prevState) => ({
+              ...prevState,
+              isLoading: false,
+            }));
+          }
           break;
       }
     };
@@ -137,6 +170,21 @@ export default function App() {
     }
   };
 
+  const handleCopyCodeRequest = async (): Promise<string> => {
+    return new Promise((resolve) => {
+      copyResolver.current = resolve;
+      // Send message to plugin backend to request code for copy (force upload)
+      parent.postMessage(
+        {
+          pluginMessage: {
+            type: "copy-code-request",
+          },
+        },
+        "*"
+      );
+    });
+  };
+
   const darkMode = figmaColorBgValue !== "#ffffff";
 
   return (
@@ -150,6 +198,7 @@ export default function App() {
         onPreferenceChanged={handlePreferencesChange}
         htmlPreview={state.htmlPreview}
         settings={state.settings}
+        onCopyRequest={handleCopyCodeRequest}
       />
     </div>
   );

@@ -9,7 +9,16 @@ export interface HTMLSettings {
   useColorVariables: boolean;
 }
 
-export interface TailwindSettings {
+export interface AssetUploadSettings {
+  enableAssetUpload: boolean;
+  uploadEndpoint: string;
+  cacheTTLHours: number;
+  maxConcurrentUploads: number;
+  bitmapStrategy: "upload" | "placeholder";
+  vectorStrategy: "upload" | "fallback_rect";
+}
+
+export interface TailwindSettings extends AssetUploadSettings {
   // 代码生成模式（阶段2会进一步删除 twig）
   tailwindGenerationMode: "html" | "jsx" | "twig";
 
@@ -39,6 +48,7 @@ export interface PluginSettings extends TailwindSettings {
 // Messaging
 export interface ConversionData {
   code: string;
+  triggerType?: string;
   settings: PluginSettings;
   htmlPreview: HTMLPreview;
   warnings: Warning[];
@@ -252,6 +262,7 @@ export interface PluginSettings extends TailwindSettings {
 // Messaging
 export interface ConversionData {
   code: string;
+  triggerType?: string;
   settings: PluginSettings;
   htmlPreview: HTMLPreview;
   colors: SolidColorConversion[];

@@ -9,7 +9,7 @@
 	"compatibility_date": "2025-09-27",
 	"observability": {
 		"enabled": true
-	}
+	},
 	/**
 	 * Smart Placement
 	 * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
@@ -34,8 +34,13 @@
 	 */
 	// "assets": {  "directory": "./public/",  "binding": "ASSETS" }
 	/**
-	 * Service Bindings (communicate between multiple Workers)
-	 * https://developers.cloudflare.com/workers/wrangler/configuration/#service-bindings
+	 * R2 Buckets
+	 * https://developers.cloudflare.com/workers/wrangler/configuration/#r2-buckets
 	 */
-	// "services": [  {   "binding": "MY_SERVICE",   "service": "my-service"  } ]
+	"r2_buckets": [
+		{
+			"binding": "MY_BUCKET",
+			"bucket_name": "figma-assets"
+		}
+	],
 }
