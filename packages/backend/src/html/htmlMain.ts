@@ -16,12 +16,16 @@ import {
   exportNodeAsBase64PNG,
   getPlaceholderImage,
   nodeHasImageFill,
+  exportNodeAsBytes,
+  getOrUploadAsset,
 } from "../common/images";
 import { addWarning } from "../common/commonConversionWarnings";
 
 const selfClosingTags = ["img"];
 
 export let isPreviewGlobal = false;
+
+type ExtendedHTMLSettings = HTMLSettings & { isPreview?: boolean };
 
 let previousExecutionCache: { style: string; text: string }[];
 
@@ -313,12 +317,17 @@ export const htmlMain = async (
   settings: PluginSettings,
   isPreview: boolean = false,
 ): Promise<HtmlOutput> => {
-  isPreviewGlobal = isPreview;
+  // isPreviewGlobal = isPreview; // Deprecated
   previousExecutionCache = [];
   cssCollection = {};
   resetClassNameCounters(); // Reset counters for each new generation
 
-  let htmlContent = await htmlWidgetGenerator(sceneNode, settings);
+  const extendedSettings: ExtendedHTMLSettings = {
+    ...settings,
+    isPreview,
+  };
+
+  let htmlContent = await htmlWidgetGenerator(sceneNode, extendedSettings);
 
   // remove the initial \n that is made in Container.
   if (htmlContent.length > 0 && htmlContent.startsWith("\n")) {
@@ -357,7 +366,7 @@ export const generateHTMLPreview = async (
       ...settings,
       htmlGenerationMode: "html",
     },
-    nodes.length > 1 ? false : true,
+    true,
   );
 
   if (nodes.length > 1) {
@@ -375,7 +384,7 @@ export const generateHTMLPreview = async (
 
 const htmlWidgetGenerator = async (
   sceneNode: ReadonlyArray<SceneNode>,
-  settings: HTMLSettings,
+  settings: ExtendedHTMLSettings,
 ): Promise<string> => {
   // filter non visible nodes. This is necessary at this step because conversion already happened.
   const promiseOfConvertedCode = getVisibleNodes(sceneNode).map(
@@ -385,7 +394,33 @@ const htmlWidgetGenerator = async (
   return code;
 };
 
-const convertNode = (settings: HTMLSettings) => async (node: SceneNode) => {
+const convertNode = (settings: ExtendedHTMLSettings) => async (node: SceneNode) => {
+  // Interceptor for #static
+  if (node.name.startsWith("#static")) {
+    // Force export as image
+    let imageURL = "";
+
+    if (settings.isPreview) {
+      const base64 = await exportNodeAsBase64PNG(node as any, true);
+      if (base64) {
+        imageURL = base64;
+      }
+    } else if (settings.enableAssetUpload) {
+      const bytes = await exportNodeAsBytes(node, "PNG");
+      if (bytes) {
+        const url = await getOrUploadAsset(bytes, "png", settings);
+        if (url) imageURL = url;
+      }
+    }
+
+    if (!imageURL) {
+      imageURL = getPlaceholderImage(node.width, node.height);
+    }
+
+    const style = `width: ${Math.round(node.width)}px; height: ${Math.round(node.height)}px; object-fit: cover`;
+    return `\n<img src="${imageURL}" alt="static layer" style="${style}" data-figma-id="${node.id}" />`;
+  }
+
   if (settings.embedVectors && (node as any).canBeFlattened) {
     const altNode = await renderAndAttachSVG(node);
     if (altNode.svg) {
@@ -411,7 +446,7 @@ const convertNode = (settings: HTMLSettings) => async (node: SceneNode) => {
     case "LINE":
       return htmlLine(node, settings);
     case "VECTOR":
-      if (!settings.embedVectors && !isPreviewGlobal) {
+      if (!settings.embedVectors && !settings.isPreview) {
         addWarning("不支持矢量图");
       }
       return await htmlContainer(
@@ -428,7 +463,7 @@ const convertNode = (settings: HTMLSettings) => async (node: SceneNode) => {
 
 const htmlWrapSVG = (
   node: AltNode<SceneNode>,
-  settings: HTMLSettings,
+  settings: ExtendedHTMLSettings,
 ): string => {
   if (node.svg === "") return "";
 
@@ -445,7 +480,7 @@ const htmlWrapSVG = (
 
 const htmlGroup = async (
   node: GroupNode,
-  settings: HTMLSettings,
+  settings: ExtendedHTMLSettings,
 ): Promise<string> => {
   // ignore the view when size is zero or less
   // while technically it shouldn't get less than 0, due to rounding errors,
@@ -467,7 +502,7 @@ const htmlGroup = async (
 };
 
 // For htmlText and htmlContainer, use the htmlGenerationMode to determine styling approach
-const htmlText = (node: TextNode, settings: HTMLSettings): string => {
+const htmlText = (node: TextNode, settings: ExtendedHTMLSettings): string => {
   let layoutBuilder = new HtmlTextBuilder(node, settings)
     .commonPositionStyles()
     .textTrim()
@@ -556,7 +591,7 @@ const htmlText = (node: TextNode, settings: HTMLSettings): string => {
 
 const htmlFrame = async (
   node: SceneNode & BaseFrameMixin,
-  settings: HTMLSettings,
+  settings: ExtendedHTMLSettings,
 ): Promise<string> => {
   const childrenStr = await htmlWidgetGenerator(node.children, settings);
 
@@ -581,7 +616,7 @@ const htmlContainer = async (
     MinimalBlendMixin,
   children: string,
   additionalStyles: string[] = [],
-  settings: HTMLSettings,
+  settings: ExtendedHTMLSettings,
 ): Promise<string> => {
   // ignore the view when size is zero or less
   if (node.width <= 0 || node.height <= 0) {
@@ -602,13 +637,25 @@ const htmlContainer = async (
       let imgUrl = "";
 
       if (
-        settings.embedImages &&
-        (settings as PluginSettings).framework === "HTML"
+        settings.isPreview ||
+        (settings.embedImages &&
+          (settings as PluginSettings).framework === "HTML")
       ) {
         imgUrl = (await exportNodeAsBase64PNG(altNode, hasChildren)) ?? "";
       } else {
-        imgUrl = getPlaceholderImage(node.width, node.height);
-        console.log("imgUrl", imgUrl);
+        // Try to upload if enabled
+        if (settings.enableAssetUpload) {
+          const bytes = await exportNodeAsBytes(node, "PNG");
+          if (bytes) {
+             const url = await getOrUploadAsset(bytes, "png", settings);
+             if (url) imgUrl = url;
+          }
+        }
+        
+        if (!imgUrl) {
+          imgUrl = getPlaceholderImage(node.width, node.height);
+          console.log("imgUrl placeholder", imgUrl);
+        }
       }
 
       if (hasChildren) {
@@ -660,7 +707,7 @@ const htmlContainer = async (
 
 const htmlSection = async (
   node: SectionNode,
-  settings: HTMLSettings,
+  settings: ExtendedHTMLSettings,
 ): Promise<string> => {
   const childrenStr = await htmlWidgetGenerator(node.children, settings);
   const builder = new HtmlDefaultBuilder(node, settings)
@@ -675,7 +722,7 @@ const htmlSection = async (
   }
 };
 
-const htmlLine = (node: LineNode, settings: HTMLSettings): string => {
+const htmlLine = (node: LineNode, settings: ExtendedHTMLSettings): string => {
   const builder = new HtmlDefaultBuilder(node, settings)
     .commonPositionStyles()
     .commonShapeStyles();

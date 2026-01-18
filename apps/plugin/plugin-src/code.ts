@@ -154,12 +154,62 @@ const standardMode = async () => {
   await initSettings();
 
   // Listen for selection changes
-  figma.on("selectionchange", () => {
+  figma.on("selectionchange", async () => {
     console.log(
       "[DEBUG] selectionchange event - New selection:",
       figma.currentPage.selection,
     );
     safeRun(userPluginSettings, { isPreview: true, triggerType: "selection" });
+
+    // New: Sync selection tags to UI
+    const selection = figma.currentPage.selection;
+    let currentTag = { type: "", id: "", fullTag: "" };
+    let aiInstruction = "";
+    let isStatic = false;
+
+    if (selection.length === 1) {
+      const node = selection[0];
+      const name = node.name;
+
+      // Parse Tag
+      if (name.startsWith("#slot:")) {
+        const parts = name.split(":");
+        currentTag = { type: parts[1] || "img", id: parts[2] || "", fullTag: name };
+      } else if (name.startsWith("#list:")) {
+        const parts = name.split(":");
+        currentTag = { type: "list", id: parts[1] || "", fullTag: name };
+      } else if (name.startsWith("#canvas:")) {
+         const parts = name.split(":");
+         currentTag = { type: "canvas", id: parts[1] || "", fullTag: name };
+      }
+
+      // Check for static
+      if (name.startsWith("#static")) {
+        isStatic = true;
+      }
+
+      // Check for AI Instruction (look for child #prompt)
+      if ("children" in node) {
+        const promptNode = (node as ChildrenMixin).children.find(child => child.name === "#prompt" && child.type === "TEXT") as TextNode;
+        if (promptNode) {
+          aiInstruction = promptNode.characters;
+        }
+      }
+      
+      // Also check if self is #prompt
+      if (node.name === "#prompt" && node.type === "TEXT") {
+          aiInstruction = (node as TextNode).characters;
+      }
+    }
+
+    figma.ui.postMessage({
+      type: "update-selection-tags",
+      data: {
+        currentTag,
+        aiInstruction,
+        isStatic
+      }
+    });
   });
 
   // Listen for page changes
@@ -242,6 +292,136 @@ const standardMode = async () => {
         type: "selection-json",
         data: nodeJson,
       });
+    } else if (msg.type === "apply-tag") {
+      const { tag } = msg as any;
+      const selection = figma.currentPage.selection;
+      if (selection.length === 0) {
+        figma.notify("Please select a layer first.");
+        return;
+      }
+      for (const node of selection) {
+        node.name = tag;
+      }
+      figma.notify(`Applied tag: ${tag}`);
+      // Trigger update
+      safeRun(userPluginSettings, { isPreview: true, triggerType: "selection" });
+    } else if (msg.type === "add-ai-instruction") {
+      await figma.loadFontAsync({ family: "Inter", style: "Regular" });
+      const selection = figma.currentPage.selection;
+      let parent: BaseNode & ChildrenMixin = figma.currentPage;
+      if (selection.length > 0 && "children" in selection[0]) {
+        parent = selection[0] as BaseNode & ChildrenMixin;
+      }
+
+      const textNode = figma.createText();
+      textNode.characters = "在此输入 AI 指令...";
+      textNode.name = "#prompt";
+      textNode.fills = [{ type: "SOLID", color: { r: 1, g: 0, b: 0 } }]; // Red color
+      textNode.fontSize = 14;
+      textNode.visible = false; // Hidden by default
+
+      if (parent !== figma.currentPage) {
+         parent.appendChild(textNode);
+         textNode.x = 0;
+         textNode.y = 0;
+      } else {
+         textNode.x = figma.viewport.center.x;
+         textNode.y = figma.viewport.center.y;
+      }
+      figma.currentPage.selection = [textNode];
+      figma.notify("Added hidden #prompt layer");
+    } else if (msg.type === "update-ai-instruction") {
+       const { text } = msg as any;
+       await figma.loadFontAsync({ family: "Inter", style: "Regular" });
+       const selection = figma.currentPage.selection;
+       if (selection.length === 0) return;
+       
+       const node = selection[0];
+       let promptNode: TextNode | null = null;
+
+       if (node.name === "#prompt" && node.type === "TEXT") {
+          promptNode = node as TextNode;
+       } else if ("children" in node) {
+          promptNode = (node as ChildrenMixin).children.find(child => child.name === "#prompt" && child.type === "TEXT") as TextNode | null;
+       }
+
+       if (promptNode) {
+          promptNode.characters = text;
+          figma.notify("Updated AI instruction");
+       } else {
+          // If trying to update but no prompt node exists, maybe create one? 
+          // For now, let's just notify error or ignore. 
+          // Better: auto create if parent selected.
+          if ("children" in node) {
+             const textNode = figma.createText();
+             textNode.characters = text;
+             textNode.name = "#prompt";
+             textNode.fills = [{ type: "SOLID", color: { r: 1, g: 0, b: 0 } }];
+             textNode.fontSize = 14;
+             textNode.visible = false;
+             (node as ChildrenMixin & BaseNode).appendChild(textNode);
+             textNode.x = 0;
+             textNode.y = 0;
+             figma.notify("Created and updated #prompt");
+          }
+       }
+    } else if (msg.type === "toggle-static") {
+       const selection = figma.currentPage.selection;
+       if (selection.length === 0) {
+          figma.notify("Select a layer first");
+          return;
+       }
+       const node = selection[0];
+       if (node.name.startsWith("#static")) {
+          // Remove #static
+          node.name = node.name.replace("#static", "").trim() || "Layer";
+          figma.notify("Removed #static tag");
+       } else {
+          // Add #static
+          node.name = `#static ${node.name}`;
+          figma.notify("Marked as #static");
+       }
+       safeRun(userPluginSettings, { isPreview: true, triggerType: "selection" });
+    } else if (msg.type === "flatten-layer") {
+       // Deprecated legacy handler, keep just in case or redirect
+       const selection = figma.currentPage.selection;
+       if (selection.length === 0) return;
+       // ... existing logic ...
+       // But we want to replace it. Let's just remove the old logic block or make it do nothing to avoid confusion.
+       // Actually user asked to CHANGE "One click flatten" to "Mark as static".
+       // So I will just redirect to toggle-static logic here if called, 
+       // but UI will call toggle-static.
+    } else if (msg.type === "check-layers") {
+       const selection = figma.currentPage.selection;
+       let warnings: string[] = [];
+       const checkNode = (node: SceneNode) => {
+          if (node.type === "GROUP") {
+             warnings.push(`Layer "${node.name}" is a Group. Recommend changing to Frame for better layout support.`);
+          }
+          // Check naming
+          if (node.name.startsWith("#")) {
+             // Valid tag?
+             const validTags = ["#slot", "#list", "#canvas", "#static", "#ignore", "#prompt"];
+             const tag = node.name.split(":")[0];
+             if (!validTags.includes(tag) && !validTags.some(t => node.name.startsWith(t))) {
+                warnings.push(`Unknown tag in layer "${node.name}".`);
+             }
+          }
+          if ("children" in node) {
+             for (const child of node.children) {
+                checkNode(child as SceneNode);
+             }
+          }
+       };
+       for (const node of selection) {
+          checkNode(node);
+       }
+       if (warnings.length > 0) {
+          figma.notify(warnings[0] + (warnings.length > 1 ? ` (+${warnings.length - 1} more)` : ""));
+          console.warn("Layer Checks:", warnings);
+       } else {
+          figma.notify("Layer structure looks good!");
+       }
     }
   };
 };

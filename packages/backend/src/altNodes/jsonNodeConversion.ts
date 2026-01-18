@@ -273,7 +273,10 @@ const processNodePair = async (
   parentCumulativeRotation: number = 0,
 ): Promise<Node | Node[] | null> => {
   if (!jsonNode.id) return null;
-  if (jsonNode.visible === false) return null;
+  
+  // ALLOW #prompt nodes even if visible=false
+  const isPrompt = jsonNode.name.startsWith("#prompt");
+  if (jsonNode.visible === false && !isPrompt) return null;
 
   // Handle node type-specific conversions (from convertNodeToAltNode)
   const nodeType = jsonNode.type;
@@ -317,9 +320,9 @@ const processNodePair = async (
       figmaNode &&
       "children" in figmaNode
     ) {
-      // Get visible JSON children (filters out nodes with visible: false)
+      // Get visible JSON children (filters out nodes with visible: false) OR #prompt
       const visibleJsonChildren = jsonNode.children.filter(
-        (child) => child.visible !== false,
+        (child) => child.visible !== false || child.name.startsWith("#prompt"),
       ) as AltNode[];
 
       // Map figma children to their IDs for matching
@@ -558,9 +561,9 @@ const processNodePair = async (
     Array.isArray(jsonNode.children) &&
     "children" in figmaNode
   ) {
-    // Get only visible JSON children
+    // Get only visible JSON children OR #prompt
     const visibleJsonChildren = jsonNode.children.filter(
-      (child) => child.visible !== false,
+      (child) => child.visible !== false || child.name.startsWith("#prompt"),
     ) as AltNode[];
 
     // Create a map of figma children by ID for easier matching

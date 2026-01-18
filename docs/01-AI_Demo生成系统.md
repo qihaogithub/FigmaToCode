@@ -40,9 +40,10 @@
 
 **"插件产出骨架，AI 注入灵魂，SDK 托底能力"**
 
-- **Figma 插件 (Modified FigmaToCode)**：负责"硬"工作。用户在插件中配置好标记后，导出高还原度的 **Raw React Code**。这套代码已经具备了准确的布局（Flex/Grid）和基础组件结构（`<SdkImage>`, `<SdkList>`）。
-- **用户 (Human in the Loop)**：作为搬运工和决策者。将 Raw Code 粘贴至 AI 工作台，并可输入自然语言指令（如"加个倒计时"）或保持默认。
+- **Figma 插件 (Modified FigmaToCode)**：负责"硬"工作。用户在插件中配置好标记后，导出高还原度的 **Raw JSX Fragment** (仅组件渲染部分，无外壳)。这套代码已经具备了准确的布局（Flex/Grid）和基础组件结构（`<SdkImage>`, `<SdkList>`）。
+- **用户 (Human in the Loop)**：作为搬运工和决策者。将 Raw JSX 粘贴至 AI 工作台，并可输入自然语言指令（如"加个倒计时"）或保持默认。
 - **AI Agent (Orchestrator)**：作为"工程经理"，拥有多种 **Skills (工具)**。它分析用户输入的代码和指令，自主决策：
+  - **Scaffolding (脚手架补全)**：将用户投喂的 JSX 片段包裹进标准的 React 组件模板中，自动补充 import 和 export。
   - 若代码已完善：直接调用 `SchemaExtractor` 工具生成配置，不修改代码。
   - 若有逻辑需求：调用 `CodeRefactorer` 注入交互逻辑。
   - 若需重构：调用 `LayoutTransformer` 优化结构。
@@ -247,13 +248,16 @@ DSLP 协议分为三层：
 
 - **左侧：代码投喂与交互区**
 
-  - **原始代码输入 (投喂口)**：
-    - 一个大的代码编辑器区域，用户将 Figma 插件导出的代码粘贴至此。
-    - **自动检测**：系统自动分析代码特征（是否包含 `data-figma-id`，是否已有 `<Sdk*>` 组件）。
-  
-  - **AI聊天框 (指令区)**：
-    - **Prompt Input**：用户输入自然语言需求（e.g., "给商品列表加个交替变色效果", "点击 banner 跳转链接"）。
-    - **Empty State (无指令模式)**：如果用户什么都不输，直接点击"生成 Demo"，AI 将默认执行 **"标准化处理"** —— 仅提取 Schema 和优化代码结构，不改变视觉效果。
+  - **投喂/输入区 (Input Area)**：
+    - **多模态输入框**：底部提供一个综合输入框，支持三种类型的输入：
+      1.  **代码 (Paste Code)**：粘贴 Figma 插件导出的 Raw JSX 片段。
+      2.  **图片 (Upload Image)**：上传参考图或设计稿截图，辅助 AI 理解。
+      3.  **文件 (Upload File)**：上传其他文档或资源。
+    - **Prompt Input**：输入自然语言指令（e.g., "给商品列表加个交替变色效果"）。
+
+  - **内容展示区 (Display Area)**：提供 Tab 切换功能：
+    - **Tab 1: AI Chat (交互记录)**：展示与 Agent 的对话历史、思考过程 (Thinking) 和工具调用结果。
+    - **Tab 2: Final Code (最终代码)**：展示经过 AI 处理补全后的完整 React 组件代码 (包含 import/export)，即右侧预览区实际运行的代码。
 
 - **中间：实时预览区**
   - **Canvas Scaling**：容器强制 `transform: scale()`，模拟不同设备视口，保证设计稿 1:1 显示。
@@ -473,28 +477,26 @@ demo-template/
 
 *(详细技术实现已迁移至 [Figma 插件需求规格说明书](./02-Figma插件需求说明书.md))*
 
-### 10.2 AI System Prompt 策略，使其能够识别 DSLP*标记并* m
-
-Context:
-You are an intelligent agent responsible for transforming raw React code (exported from Figma) into a fully functional, configurable Demo Component.
-You have access to a set of SKILLS (Tools). Do not attempt to manually parse complex structures if a tool is available.
-
-Available Skills:
-1. `extract_schema(code)`: Analyzes the code, identifies <Sdk*> components and their props, and generates a valid JSON Schema.
-2. `format_dslp(code)`: Cleans up the code, ensuring all SDK imports are correct and removing temp markers.
-3. `inject_hook(code, hook_name, logic)`: Safely injects a React Hook into the component body.
-
-Workflow:
-1. ANALYZE the User's Request and the Input Code.
-2. DECIDE which strategy to use:
-   - Strategy A (Optimization): If user says nothing or just "optimize", USE `extract_schema` AND `format_dslp`.
-   - Strategy B (Modification): If user asks for logic (e.g., "add countdown"), REASON about the implementation, then output the modified code directly (or use injection tools).
-   
-Rules:
-- TRUST the layout structure provided in the Input Code. Do not rewrite CSS unless explicitly asked.
-- ALWAYS ensure the `config.schema.json` matches the Props used in the code.
-- IF the Input Code already contains <SdkImage>, <SdkList>, etc., PRESERVE them.
-```
+### 10.2 AI System Prompt 策略
+ 
+ Context:
+ You are an intelligent agent responsible for transforming raw React JSX fragments (exported from Figma) into a fully functional, configurable Demo Component.
+ 
+ Workflow:
+ 1. ANALYZE the User's Request and the Input Content (Code/Image/File).
+ 2. SCAFFOLDING (If input is raw JSX):
+    - Wrap the JSX fragment in a standard React Functional Component structure.
+    - Add necessary imports: `import React from 'react';` and `import { SdkImage, SdkList, ... } from '@demo-sdk/components';`.
+    - Ensure `export default function App() { ... }`.
+ 3. DECIDE which strategy to use:
+    - Strategy A (Optimization): If user says nothing or just "optimize", USE `extract_schema` AND `format_dslp`.
+    - Strategy B (Modification): If user asks for logic (e.g., "add countdown"), REASON about the implementation, then output the modified code directly (or use injection tools).
+    
+ Rules:
+ - TRUST the layout structure provided in the Input Code. Do not rewrite CSS unless explicitly asked.
+ - ALWAYS ensure the `config.schema.json` matches the Props used in the code.
+ - IF the Input Code already contains <SdkImage>, <SdkList>, etc., PRESERVE them.
+ ```
 
 ### 10.3 局部更新机制 (In-place Refactoring)
 

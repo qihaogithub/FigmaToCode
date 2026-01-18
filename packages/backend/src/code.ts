@@ -75,7 +75,20 @@ export const run = async (settings: PluginSettings, options: { isPreview?: boole
   );
 
   const generatePreviewStart = Date.now();
-  const htmlPreview = await generateHTMLPreview(convertedSelection, settings);
+  // Filter out #prompt nodes for HTML preview to avoid layout issues
+  const previewNodes = convertedSelection.filter((node: any) => !node.name.startsWith("#prompt"));
+  // Also recursively filter children
+  const filterPrompts = (nodes: any[]) => {
+     return nodes.map(node => {
+         if ("children" in node && Array.isArray(node.children)) {
+             return { ...node, children: filterPrompts(node.children.filter((c: any) => !c.name.startsWith("#prompt"))) };
+         }
+         return node;
+     });
+  };
+  const filteredPreviewNodes = filterPrompts(previewNodes);
+
+  const htmlPreview = await generateHTMLPreview(filteredPreviewNodes, settings);
   console.log(
     `[benchmark] generateHTMLPreview: ${Date.now() - generatePreviewStart}ms`,
   );
@@ -107,11 +120,18 @@ export const run = async (settings: PluginSettings, options: { isPreview?: boole
     }ms)`,
   );
 
-  postConversionComplete({
+  const payload = {
     code,
     triggerType: options.triggerType,
     htmlPreview,
     settings,
     warnings: [...warnings],
-  });
+  };
+  console.log("[DEBUG] Sending conversion complete payload keys:", Object.keys(payload));
+  // Explicitly verify code content existence
+  if (!payload.code) {
+      console.error("[DEBUG] Code is empty or undefined in payload!");
+  }
+
+  postConversionComplete(payload);
 };

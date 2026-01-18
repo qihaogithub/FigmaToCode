@@ -72,8 +72,15 @@ export default function App() {
         case "code":
           const conversionMessage = pluginMessage as ConversionMessage;
           
+          // FIX: Handle potential localized keys or missing code property
+          // Log keys for debugging
+          console.log("[ui] conversionMessage keys:", Object.keys(conversionMessage));
+          
+          const codeContent = conversionMessage.code || (conversionMessage as any)["代码"] || "";
+          
           if (conversionMessage.triggerType === "copy" && copyResolver.current) {
-            copyResolver.current(conversionMessage.code);
+            console.log("[ui] Resolving copy promise with code length:", codeContent.length);
+            copyResolver.current(codeContent);
             copyResolver.current = null;
             // 重要修复：复制完成后必须重置 loading 状态
             setState((prevState) => ({
@@ -82,9 +89,12 @@ export default function App() {
             }));
           } else {
              // Normal selection update or other updates
+             // Use the extracted codeContent
+             const newMessage = { ...conversionMessage, code: codeContent };
+             
              setState((prevState) => ({
               ...prevState,
-              ...conversionMessage,
+              ...newMessage,
               selectedFramework: conversionMessage.settings.framework,
               isLoading: false,
             }));

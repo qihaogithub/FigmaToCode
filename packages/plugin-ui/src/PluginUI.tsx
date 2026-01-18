@@ -1,6 +1,7 @@
 import Preview from "./components/Preview";
 import CodePanel from "./components/CodePanel";
 import WarningsPanel from "./components/WarningsPanel";
+import TaggingPanel from "./components/TaggingPanel";
 import { Framework, HTMLPreview, PluginSettings, Warning } from "types";
 import {
   preferenceOptions,
@@ -8,7 +9,7 @@ import {
 } from "./codegenPreferenceOptions";
 import Loading from "./components/Loading";
 import { useState } from "react";
-import { InfoIcon } from "lucide-react";
+import { InfoIcon, Tag } from "lucide-react";
 import React from "react";
 
 type PluginUIProps = {
@@ -27,7 +28,7 @@ type PluginUIProps = {
 };
 
 export const PluginUI = (props: PluginUIProps) => {
-  const [activeTab, setActiveTab] = useState<"preview" | "code" | "about">(
+  const [activeTab, setActiveTab] = useState<"preview" | "code" | "tagging" | "about">(
     "preview",
   );
 
@@ -63,6 +64,18 @@ export const PluginUI = (props: PluginUIProps) => {
             onClick={() => setActiveTab("code")}
           >
             代码
+          </button>
+          <button
+            className={`flex-1 h-8 flex items-center justify-center rounded-md text-sm font-medium transition-colors ${
+              activeTab === "tagging"
+                ? "bg-primary text-primary-foreground shadow-xs"
+                : "bg-muted hover:bg-primary/90 hover:text-primary-foreground"
+            }`}
+            onClick={() => setActiveTab("tagging")}
+            aria-label="标记"
+          >
+            <Tag size={16} className="mr-1" />
+            标记
           </button>
           <button
             className={`w-8 h-8 flex items-center justify-center rounded-md text-sm font-medium ${
@@ -114,6 +127,8 @@ export const PluginUI = (props: PluginUIProps) => {
               onCopyRequest={props.onCopyRequest}
             />
           </div>
+        ) : activeTab === "tagging" ? (
+            <TaggingPanel />
         ) : (
           <div className="flex flex-col items-center justify-center px-4 py-8 text-center text-muted-foreground">
             <p>关于页面暂未实现</p>
