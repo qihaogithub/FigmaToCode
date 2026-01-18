@@ -54,9 +54,17 @@ export default function App() {
 
       switch (pluginMessage.type) {
         case "conversionStart":
+          // 只有在非 copy 触发时才清空 code，或者如果 UI 上需要保留旧代码直到新代码生成，可以不清空。
+          // 但为了用户体验，知道正在重新生成，清空是合理的。
+          // 但是！如果是 copy 操作，我们不希望 UI 突然变空然后又变回来（或者变空保持空）。
+          // 实际上，copy 操作是后台进行的，不需要清空 UI 上的代码展示（因为 UI 上展示的是占位符版本）。
+          // 只有 selection 变化才需要清空。
+          
+          // 我们无法在这里区分是 copy 触发还是 selection 触发，因为 conversionStart 消息目前没有带 triggerType。
+          // 暂时保持原样，但在 copy 完成后恢复。
           setState((prevState) => ({
             ...prevState,
-            code: "",
+            // code: "", // 不要清空代码，这样 copy 时 UI 不会闪烁或变空
             isLoading: true,
           }));
           break;
