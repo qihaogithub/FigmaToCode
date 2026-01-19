@@ -202,12 +202,22 @@ const standardMode = async () => {
       }
     }
 
+    // Check AutoLayout Mode
+    let autoLayoutMode = "NONE";
+    if (selection.length === 1) {
+        const node = selection[0];
+        if ("layoutMode" in node) {
+            autoLayoutMode = node.layoutMode;
+        }
+    }
+
     figma.ui.postMessage({
       type: "update-selection-tags",
       data: {
         currentTag,
         aiInstruction,
-        isStatic
+        isStatic,
+        autoLayoutMode
       }
     });
   });
@@ -416,12 +426,33 @@ const standardMode = async () => {
        for (const node of selection) {
           checkNode(node);
        }
+       
+       // Send results back to UI instead of just notifying
+       figma.ui.postMessage({
+         type: "check-layers-result",
+         data: { warnings }
+       });
+       
        if (warnings.length > 0) {
-          figma.notify(warnings[0] + (warnings.length > 1 ? ` (+${warnings.length - 1} more)` : ""));
           console.warn("Layer Checks:", warnings);
        } else {
-          figma.notify("Layer structure looks good!");
+          // Optional: still notify simple success if triggered manually, but UI handles display now
        }
+    } else if (msg.type === "set-layout-mode") {
+        const { mode } = msg as any; // "VERTICAL", "HORIZONTAL", "NONE"
+        const selection = figma.currentPage.selection;
+        if (selection.length === 0) return;
+        
+        for (const node of selection) {
+            if (node.type === "FRAME" || node.type === "COMPONENT" || node.type === "COMPONENT_SET" || node.type === "INSTANCE") {
+                if (mode === "NONE") {
+                    node.layoutMode = "NONE";
+                } else {
+                    node.layoutMode = mode;
+                }
+            }
+        }
+        safeRun(userPluginSettings, { isPreview: true, triggerType: "selection" });
     }
   };
 };
